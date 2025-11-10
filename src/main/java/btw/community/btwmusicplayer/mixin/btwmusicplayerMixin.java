@@ -1,4 +1,4 @@
-package net.fabricmc.btwmusicplayer.mixin;
+package btw.community.btwmusicplayer.mixin;
 
 import btw.BTWMod;
 import org.spongepowered.asm.mixin.Mixin;

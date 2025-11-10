@@ -15,9 +15,6 @@
   "icon": "assets/btw-music-player/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "net.fabricmc.btwmusicplayer.btwmusicplayerMod"
-    ],
     "btw:addon": [
       "btw.community.btwmusicplayer.btwmusicplayerAddon"
     ]

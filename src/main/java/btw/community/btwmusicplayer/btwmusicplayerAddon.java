@@ -13,5 +13,6 @@ public class btwmusicplayerAddon extends BTWAddon {
     @Override
     public void initialize() {
         AddonHandler.logMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
+        System.out.println("Hello from BTW Music Player Addon!");
     }
 }
