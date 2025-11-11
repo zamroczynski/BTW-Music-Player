@@ -6,7 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "btwmusicplayerMixin"
+    "SoundManagerMixin",
+    "SoundPoolAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
