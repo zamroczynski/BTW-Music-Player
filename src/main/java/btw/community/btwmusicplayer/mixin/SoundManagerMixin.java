@@ -1,10 +1,10 @@
 package btw.community.btwmusicplayer.mixin;
 
-import net.minecraft.src.GameSettings;
-import net.minecraft.src.ResourceManager;
-import net.minecraft.src.SoundManager;
-import net.minecraft.src.SoundPool;
-import net.minecraft.src.SoundPoolEntry;
+import btw.community.btwmusicplayer.data.SongRule;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,58 +13,63 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import paulscode.sound.SoundSystem;
 
 import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Mixin(SoundManager.class)
 public abstract class SoundManagerMixin {
 
-    @Shadow private SoundSystem sndSystem;
-    @Shadow private SoundPool soundPoolMusic;
-    @Shadow private GameSettings options;
-
-    private boolean hasDumpedMusicList = false;
+    private static final List<SongRule> allSongRules = new ArrayList<>();
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void onInit(ResourceManager par1ResourceManager, GameSettings par2GameSettings, File par3File, CallbackInfo ci) {
-        System.out.println("--- [BTW Music Player] Rejestruję dodatkową muzykę... ---");
+    private void onInit(ResourceManager resourceManager, GameSettings gameSettings, File assetsDir, CallbackInfo ci) {
+        File gameDir = FabricLoader.getInstance().getGameDir().toFile();
 
-        SoundManager thisManager = (SoundManager)(Object)this;
+        loadSoundPacks(gameDir);
+    }
 
-        thisManager.addMusic("btw-music-player:test_music.ogg");
+    private void loadSoundPacks(File gameDir) {
+        System.out.println("--- [BTW Music Player] Rozpoczynam ładowanie Sound Packów... ---");
+        System.out.println("--- [BTW Music Player] DIAGNOSTYKA: Używam katalogu gry: " + gameDir.getAbsolutePath());
 
-        System.out.println("--- [BTW Music Player] Ręczna rejestracja zakończona. ---");
+        File soundPacksDir = new File(gameDir, "soundpacks");
+
+        if (!soundPacksDir.exists() || !soundPacksDir.isDirectory()) {
+            System.out.println("--- [BTW Music Player] Folder '" + soundPacksDir.getAbsolutePath() + "' nie istnieje lub nie jest folderem. Ładowanie przerwane.");
+            return;
+        }
+
+        Gson gson = new Gson();
+        Type songRuleListType = new TypeToken<ArrayList<SongRule>>(){}.getType();
+
+        for (File soundPack : soundPacksDir.listFiles()) {
+            if (soundPack.isDirectory()) {
+                File songsJsonFile = new File(soundPack, "songs.json");
+                if (songsJsonFile.exists()) {
+                    System.out.println("--- [BTW Music Player] Znaleziono sound pack: " + soundPack.getName());
+                    try (FileReader reader = new FileReader(songsJsonFile)) {
+                        List<SongRule> rules = gson.fromJson(reader, songRuleListType);
+                        for (SongRule rule : rules) {
+                            rule.soundPackPath = soundPack.getAbsolutePath();
+                        }
+                        allSongRules.addAll(rules);
+                        System.out.println("--- [BTW Music Player] Załadowano " + rules.size() + " reguł.");
+                    } catch (Exception e) {
+                        System.err.println("--- [BTW Music Player] Błąd podczas ładowania sound packa: " + soundPack.getName());
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        System.out.println("--- [BTW Music Player] Zakończono ładowanie. Całkowita liczba reguł: " + allSongRules.size());
     }
 
     @Inject(method = "playRandomMusicIfReady", at = @At("HEAD"), cancellable = true)
     private void onPlayRandomMusic(CallbackInfo ci) {
 
-        if (!this.hasDumpedMusicList) {
-            System.out.println("--- [BTW Music Player] Dostępne klucze w puli muzyki ---");
-            Map<String, List<SoundPoolEntry>> soundMap = ((SoundPoolAccessor) this.soundPoolMusic).getSoundMap();
-            for (String soundKey : soundMap.keySet()) {
-                System.out.println("Znaleziono klucz: " + soundKey);
-            }
-            System.out.println("---------------------------------------------------------");
-            this.hasDumpedMusicList = true;
-        }
-
-        if (this.sndSystem == null || this.options.musicVolume == 0.0f || this.sndSystem.playing("BgMusic")) {
-            ci.cancel();
-            return;
-        }
-
-        String soundName = "btw-music-player:test_music";
-
-        SoundPoolEntry musicToPlay = this.soundPoolMusic.getRandomSoundFromSoundPool(soundName);
-
-        if (musicToPlay != null) {
-            System.out.println("BTW Music Player: Odtwarzam testowy utwór: " + soundName);
-
-            this.sndSystem.backgroundMusic("BgMusic", musicToPlay.getSoundUrl(), musicToPlay.getSoundName(), false);
-            this.sndSystem.play("BgMusic");
-
-        }
+        // TODO: Implementacja pętli sprawdzającej warunki
 
         ci.cancel();
     }
