@@ -310,17 +310,34 @@ public abstract class SoundManagerMixin {
             if (!conditions.dimension.equalsIgnoreCase(dimensionName)) return false;
         }
 
+        if (conditions.weather != null) {
+            String currentWeather;
+            if (player.worldObj.isThundering()) {
+                currentWeather = "storm";
+            } else {
+                currentWeather = "clear";
+            }
+
+            if (log) {
+                System.out.println("[Music Player Debug] Pogoda: " + currentWeather);
+            }
+
+            if (!conditions.weather.equalsIgnoreCase(currentWeather)) {
+                return false;
+            }
+        }
+
         if (conditions.time_of_day != null) {
             long time = player.worldObj.getWorldTime() % 24000;
             String timeName = (time >= 0 && time < 13000) ? "day" : "night";
-            if (log) System.out.println("[Music Player Debug] Czas: " + time + " (" + timeName + ")");
+//            if (log) System.out.println("[Music Player Debug] Czas: " + time + " (" + timeName + ")");
             if (!conditions.time_of_day.equalsIgnoreCase(timeName)) return false;
         }
 
         if (conditions.biome != null) {
             String biomeName = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
             String normalizedBiomeName = biomeName.toLowerCase().replace(' ', '_');
-            if (log) System.out.println("[Music Player Debug] Biom: " + biomeName + " (" + normalizedBiomeName + ")");
+//            if (log) System.out.println("[Music Player Debug] Biom: " + biomeName + " (" + normalizedBiomeName + ")");
             if (!conditions.biome.equalsIgnoreCase(normalizedBiomeName)) return false;
         }
 
