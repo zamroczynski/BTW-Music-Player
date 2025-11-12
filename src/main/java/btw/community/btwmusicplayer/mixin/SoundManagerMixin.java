@@ -20,15 +20,23 @@ import java.io.FileReader;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 @Mixin(SoundManager.class)
 public abstract class SoundManagerMixin {
     private static MusicState musicState = MusicState.IDLE;
-
     private static final List<SongRule> allSongRules = new ArrayList<>();
+
+    private static List<SongRule> currentPlaylist = new ArrayList<>();
+    private static int currentPlaylistIndex = 0;
+
+//    private static List<SongRule> previousPlaylist = new ArrayList<>();
+//    private static int previousPlaylistIndex = 0;
+//    private static int previousPlaylistPriority = -1;
+
     private static String currentSongFile = null;
-    private static String targetSongFile = null;
 
     private static long transitionStartTime = 0;
     private static final long FADE_DURATION_MS = 1000;
@@ -92,43 +100,57 @@ public abstract class SoundManagerMixin {
     @Inject(method = "playRandomMusicIfReady", at = @At("HEAD"), cancellable = true)
     private void onPlayRandomMusic(CallbackInfo ci) {
         ci.cancel();
-        if (this.sndSystem == null || this.options.musicVolume == 0.0f) return;
+        if (this.sndSystem == null || this.options == null || this.options.musicVolume == 0.0f) return;
 
         debugTicks++;
         boolean shouldLog = debugTicks % 100 == 0;
-
         updateCombatState(shouldLog);
 
-        SongRule bestRule = null;
-        for (SongRule rule : allSongRules) {
-            if (checkConditions(rule.conditions, shouldLog)) {
-                if (bestRule == null || rule.priority > bestRule.priority) {
-                    bestRule = rule;
-                }
+        List<SongRule> bestPlaylist = determineBestPlaylist(shouldLog);
+
+        String targetSongFile = null;
+        if (!bestPlaylist.isEmpty()) {
+            if (!arePlaylistsEqual(bestPlaylist, currentPlaylist)) {
+                if (shouldLog) System.out.println("[Music Player Playlist] Zmiana kontekstu, tworzę nową playlistę.");
+                currentPlaylist = bestPlaylist;
+                Collections.shuffle(currentPlaylist);
+                currentPlaylistIndex = 0;
             }
+            targetSongFile = currentPlaylist.get(currentPlaylistIndex).file;
+        } else {
+            currentPlaylist.clear();
+            currentPlaylistIndex = 0;
         }
 
-        String bestSongFile = bestRule != null ? bestRule.file : null;
         long currentTime = System.currentTimeMillis();
         float progress = (float)(currentTime - transitionStartTime) / FADE_DURATION_MS;
 
         switch (musicState) {
             case IDLE:
-                if (bestSongFile != null) {
-                    currentSongFile = bestSongFile;
-                    playNewSong(bestRule, 0.0f);
+                if (targetSongFile != null) {
+                    currentSongFile = targetSongFile;
+                    playNewSong(currentPlaylist.get(currentPlaylistIndex), 0.0f);
                     transitionStartTime = currentTime;
                     changeState(MusicState.FADING_IN, shouldLog);
                 }
                 break;
 
             case PLAYING:
-                if (bestSongFile == null) {
-                    targetSongFile = null;
+                if (!this.sndSystem.playing("BgMusic")) {
+                    if (shouldLog) System.out.println("[Music Player Playlist Debug] Utwór '" + currentSongFile + "' zakończył się.");
+                    currentPlaylistIndex = (currentPlaylistIndex + 1) % currentPlaylist.size();
+                    String nextSong = currentPlaylist.get(currentPlaylistIndex).file;
+                    if (shouldLog) System.out.println("[Music Player Playlist Debug] Przechodzę do następnego: '" + nextSong + "'");
+
+                    currentSongFile = nextSong;
+                    playNewSong(currentPlaylist.get(currentPlaylistIndex), this.options.musicVolume);
+                    break;
+                }
+
+                if (targetSongFile == null) {
                     transitionStartTime = currentTime;
                     changeState(MusicState.FADING_OUT, shouldLog);
-                } else if (!bestSongFile.equals(currentSongFile)) {
-                    targetSongFile = bestSongFile;
+                } else if (!targetSongFile.equals(currentSongFile)) {
                     transitionStartTime = currentTime;
                     changeState(MusicState.FADING_OUT, shouldLog);
                 }
@@ -140,10 +162,9 @@ public abstract class SoundManagerMixin {
                     changeState(MusicState.PLAYING, shouldLog);
                 } else {
                     this.sndSystem.setVolume("BgMusic", progress * options.musicVolume);
-                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading In: " + currentSongFile + " (Progress: " + (int)(progress * 100) + "%)");
+                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading In: " + currentSongFile + " (" + (int)(progress * 100) + "%)");
                 }
-                if (bestSongFile != null && !bestSongFile.equals(currentSongFile)) {
-                    targetSongFile = bestSongFile;
+                if (targetSongFile != null && !targetSongFile.equals(currentSongFile)) {
                     transitionStartTime = currentTime;
                     changeState(MusicState.FADING_OUT, shouldLog);
                 }
@@ -155,7 +176,7 @@ public abstract class SoundManagerMixin {
                     currentSongFile = targetSongFile;
 
                     if (currentSongFile != null) {
-                        playNewSong(bestRule, 0.0f);
+                        playNewSong(currentPlaylist.get(currentPlaylistIndex), 0.0f);
                         transitionStartTime = currentTime;
                         changeState(MusicState.FADING_IN, shouldLog);
                     } else {
@@ -163,10 +184,40 @@ public abstract class SoundManagerMixin {
                     }
                 } else {
                     this.sndSystem.setVolume("BgMusic", (1.0f - progress) * options.musicVolume);
-                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading Out: " + currentSongFile + " (Progress: " + (int)(progress * 100) + "%)");
+                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading Out... (" + (int)(progress * 100) + "%)");
                 }
                 break;
         }
+    }
+
+    private List<SongRule> determineBestPlaylist(boolean log) {
+        List<SongRule> potentialRules = new ArrayList<>();
+        for (SongRule rule : allSongRules) {
+            if (checkConditions(rule.conditions, log)) {
+                potentialRules.add(rule);
+            }
+        }
+
+        List<SongRule> bestPlaylist = new ArrayList<>();
+        int bestPriority = -1;
+        if (!potentialRules.isEmpty()) {
+            for (SongRule rule : potentialRules) {
+                if (rule.priority > bestPriority) {
+                    bestPriority = rule.priority;
+                }
+            }
+            for (SongRule rule : potentialRules) {
+                if (rule.priority == bestPriority) {
+                    bestPlaylist.add(rule);
+                }
+            }
+        }
+        return bestPlaylist;
+    }
+
+    private boolean arePlaylistsEqual(List<SongRule> list1, List<SongRule> list2) {
+        if (list1.size() != list2.size()) return false;
+        return new HashSet<>(list1).equals(new HashSet<>(list2));
     }
 
     private void changeState(MusicState newState, boolean log) {
@@ -223,9 +274,9 @@ public abstract class SoundManagerMixin {
             reason = "Sustained by Threat";
         }
 
-        if (log) {
-            System.out.println("[Music Player Combat Debug] Threatened: " + isThreatened + ". Update Reason: " + reason);
-        }
+//        if (log) {
+//            System.out.println("[Music Player Combat Debug] Threatened: " + isThreatened + ". Update Reason: " + reason);
+//        }
     }
 
     private boolean checkConditions(SongConditions conditions, boolean log) {
@@ -242,13 +293,13 @@ public abstract class SoundManagerMixin {
                 }
             }
 
-            if (log) {
-                System.out.println(
-                        "[Music Player Debug] W walce: " + isInCombat +
-                                " (lastEvent: " + lastCombatEventTick +
-                                ", timeSince: " + (mc.theWorld.getTotalWorldTime() - lastCombatEventTick) + ")"
-                );
-            }
+//            if (log) {
+//                System.out.println(
+//                        "[Music Player Debug] W walce: " + isInCombat +
+//                                " (lastEvent: " + lastCombatEventTick +
+//                                ", timeSince: " + (mc.theWorld.getTotalWorldTime() - lastCombatEventTick) + ")"
+//                );
+//            }
 
             if (conditions.is_in_combat != isInCombat) return false;
         }
