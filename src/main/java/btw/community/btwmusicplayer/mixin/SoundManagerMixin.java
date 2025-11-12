@@ -1,6 +1,7 @@
 package btw.community.btwmusicplayer.mixin;
 
 import btw.community.btwmusicplayer.ModConfig;
+import btw.community.btwmusicplayer.MusicState;
 import btw.community.btwmusicplayer.data.SongConditions;
 import btw.community.btwmusicplayer.data.SongRule;
 import com.google.gson.Gson;
@@ -23,9 +24,15 @@ import java.util.List;
 
 @Mixin(SoundManager.class)
 public abstract class SoundManagerMixin {
+    private static MusicState musicState = MusicState.IDLE;
 
     private static final List<SongRule> allSongRules = new ArrayList<>();
-    private static String currentlyPlayingSongFile = null;
+    private static String currentSongFile = null;
+    private static String targetSongFile = null;
+
+    private static long transitionStartTime = 0;
+    private static final long FADE_DURATION_MS = 1000;
+
     private static int debugTicks = 0;
     private static long lastCombatEventTick = -1;
 
@@ -101,34 +108,88 @@ public abstract class SoundManagerMixin {
             }
         }
 
-        if (bestRule != null) {
-            if (!bestRule.file.equals(currentlyPlayingSongFile)) {
-                System.out.println("[Music Player] Zmieniam utwór na: " + bestRule.file + " (Priorytet: " + bestRule.priority + ")");
-                this.sndSystem.stop("BgMusic");
-                try {
-                    File songFile = new File(bestRule.soundPackPath, bestRule.file);
-                    if (songFile.exists()) {
-                        URL songUrl = songFile.toURI().toURL();
-                        this.sndSystem.backgroundMusic("BgMusic", songUrl, bestRule.file, false);
-                        this.sndSystem.setVolume("BgMusic", this.options.musicVolume);
-                        this.sndSystem.play("BgMusic");
-                        currentlyPlayingSongFile = bestRule.file;
-                    } else {
-                        System.err.println("[Music Player] BŁĄD: Plik nie istnieje: " + songFile.getAbsolutePath());
-                        currentlyPlayingSongFile = null;
-                    }
-                } catch (Exception e) {
-                    System.err.println("[Music Player] BŁĄD: Nie można odtworzyć pliku: " + bestRule.file);
-                    e.printStackTrace();
-                    currentlyPlayingSongFile = null;
+        String bestSongFile = bestRule != null ? bestRule.file : null;
+        long currentTime = System.currentTimeMillis();
+        float progress = (float)(currentTime - transitionStartTime) / FADE_DURATION_MS;
+
+        switch (musicState) {
+            case IDLE:
+                if (bestSongFile != null) {
+                    currentSongFile = bestSongFile;
+                    playNewSong(bestRule, 0.0f);
+                    transitionStartTime = currentTime;
+                    changeState(MusicState.FADING_IN, shouldLog);
                 }
+                break;
+
+            case PLAYING:
+                if (bestSongFile == null) {
+                    targetSongFile = null;
+                    transitionStartTime = currentTime;
+                    changeState(MusicState.FADING_OUT, shouldLog);
+                } else if (!bestSongFile.equals(currentSongFile)) {
+                    targetSongFile = bestSongFile;
+                    transitionStartTime = currentTime;
+                    changeState(MusicState.FADING_OUT, shouldLog);
+                }
+                break;
+
+            case FADING_IN:
+                if (progress >= 1.0f) {
+                    this.sndSystem.setVolume("BgMusic", options.musicVolume);
+                    changeState(MusicState.PLAYING, shouldLog);
+                } else {
+                    this.sndSystem.setVolume("BgMusic", progress * options.musicVolume);
+                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading In: " + currentSongFile + " (Progress: " + (int)(progress * 100) + "%)");
+                }
+                if (bestSongFile != null && !bestSongFile.equals(currentSongFile)) {
+                    targetSongFile = bestSongFile;
+                    transitionStartTime = currentTime;
+                    changeState(MusicState.FADING_OUT, shouldLog);
+                }
+                break;
+
+            case FADING_OUT:
+                if (progress >= 1.0f) {
+                    this.sndSystem.stop("BgMusic");
+                    currentSongFile = targetSongFile;
+
+                    if (currentSongFile != null) {
+                        playNewSong(bestRule, 0.0f);
+                        transitionStartTime = currentTime;
+                        changeState(MusicState.FADING_IN, shouldLog);
+                    } else {
+                        changeState(MusicState.IDLE, shouldLog);
+                    }
+                } else {
+                    this.sndSystem.setVolume("BgMusic", (1.0f - progress) * options.musicVolume);
+                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading Out: " + currentSongFile + " (Progress: " + (int)(progress * 100) + "%)");
+                }
+                break;
+        }
+    }
+
+    private void changeState(MusicState newState, boolean log) {
+        if (musicState != newState) {
+            if (log) System.out.println("[Music Player State Debug] Zmiana stanu: " + musicState + " -> " + newState);
+            musicState = newState;
+        }
+    }
+
+    private void playNewSong(SongRule rule, float initialVolume) {
+        try {
+            File songFile = new File(rule.soundPackPath, rule.file);
+            if (songFile.exists()) {
+                URL songUrl = songFile.toURI().toURL();
+                this.sndSystem.backgroundMusic("BgMusic", songUrl, rule.file, false);
+                this.sndSystem.setVolume("BgMusic", initialVolume * options.musicVolume);
+                this.sndSystem.play("BgMusic");
+            } else {
+                System.err.println("[Music Player] BŁĄD: Plik nie istnieje: " + songFile.getAbsolutePath());
             }
-        } else {
-            if (currentlyPlayingSongFile != null) {
-                System.out.println("[Music Player] Brak pasujących reguł. Zatrzymuję muzykę.");
-                this.sndSystem.stop("BgMusic");
-                currentlyPlayingSongFile = null;
-            }
+        } catch (Exception e) {
+            System.err.println("[Music Player] BŁĄD: Nie można odtworzyć pliku: " + rule.file);
+            e.printStackTrace();
         }
     }
 
