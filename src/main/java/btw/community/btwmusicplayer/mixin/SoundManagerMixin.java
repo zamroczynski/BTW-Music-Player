@@ -310,6 +310,20 @@ public abstract class SoundManagerMixin {
             if (!conditions.dimension.equalsIgnoreCase(dimensionName)) return false;
         }
 
+        if (conditions.is_in_cave != null) {
+            boolean isBelowSeaLevel = player.posY < 60;
+            boolean canSeeSky = player.worldObj.canBlockSeeTheSky((int)player.posX, (int)player.posY, (int)player.posZ);
+            boolean isCave = isBelowSeaLevel && !canSeeSky;
+
+            if (log) {
+                System.out.println("[Music Player Debug] Jaskinia: " + isCave + " (Y: " + (int)player.posY + ", CanSeeSky: " + canSeeSky + ")");
+            }
+
+            if (conditions.is_in_cave != isCave) {
+                return false;
+            }
+        }
+
         if (conditions.weather != null) {
             String currentWeather;
             if (player.worldObj.isThundering()) {
