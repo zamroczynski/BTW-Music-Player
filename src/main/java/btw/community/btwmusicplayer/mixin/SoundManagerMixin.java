@@ -1,5 +1,6 @@
 package btw.community.btwmusicplayer.mixin;
 
+import btw.community.btwmusicplayer.ModConfig;
 import btw.community.btwmusicplayer.data.SongConditions;
 import btw.community.btwmusicplayer.data.SongRule;
 import com.google.gson.Gson;
@@ -34,6 +35,7 @@ public abstract class SoundManagerMixin {
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onInit(ResourceManager resourceManager, GameSettings gameSettings, File assetsDir, CallbackInfo ci) {
         File gameDir = FabricLoader.getInstance().getGameDir().toFile();
+        ModConfig.getInstance();
         loadSoundPacks(gameDir);
     }
 
@@ -42,6 +44,9 @@ public abstract class SoundManagerMixin {
         System.out.println("--- [BTW Music Player] DIAGNOSTYKA: Używam katalogu gry: " + gameDir.getAbsolutePath());
 
         File soundPacksDir = new File(gameDir, "soundpacks");
+
+        ModConfig config = ModConfig.getInstance();
+        boolean loadAll = config.loadingMode.equalsIgnoreCase("ALL");
 
         if (!soundPacksDir.exists() || !soundPacksDir.isDirectory()) {
             System.out.println("--- [BTW Music Player] Folder '" + soundPacksDir.getAbsolutePath() + "' nie istnieje lub nie jest folderem. Ładowanie przerwane.");
@@ -53,6 +58,10 @@ public abstract class SoundManagerMixin {
 
         for (File soundPack : soundPacksDir.listFiles()) {
             if (soundPack.isDirectory()) {
+                if (!loadAll && !soundPack.getName().equalsIgnoreCase(config.singlePackName)) {
+                    System.out.println("--- [BTW Music Player] Pomijam pack: " + soundPack.getName() + " (Single mode: " + config.singlePackName + ")");
+                    continue;
+                }
                 File songsJsonFile = new File(soundPack, "songs.json");
                 if (songsJsonFile.exists()) {
                     System.out.println("--- [BTW Music Player] Znaleziono sound pack: " + soundPack.getName());
