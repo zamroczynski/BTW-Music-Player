@@ -9,7 +9,9 @@
     "SoundManagerMixin",
     "SoundPoolAccessor",
     "PlayerControllerMPMixin",
-    "BTWSquidEntityAccessor"
+    "BTWSquidEntityAccessor",
+    "EntityWitherMixin",
+    "EntityDragonMixin"
   ],
   "injectors": {
     "defaultRequire": 1

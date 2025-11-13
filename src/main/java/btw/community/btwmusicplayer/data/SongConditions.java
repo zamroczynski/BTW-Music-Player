@@ -8,4 +8,5 @@ public class SongConditions {
     public String weather;
     public Boolean is_in_cave;
     public String boss_type;
+    public String victory_after_boss;
 }

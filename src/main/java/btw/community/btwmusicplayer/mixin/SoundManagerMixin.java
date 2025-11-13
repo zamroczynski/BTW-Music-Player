@@ -44,6 +44,9 @@ public abstract class SoundManagerMixin {
     private static int debugTicks = 0;
     private static long lastCombatEventTick = -1;
 
+    private static long victoryCooldownEndTick = -1;
+    private static boolean hasLoggedCooldownEnd = true;
+
     @Shadow private SoundSystem sndSystem;
     @Shadow private GameSettings options;
 
@@ -104,6 +107,7 @@ public abstract class SoundManagerMixin {
 
         debugTicks++;
         boolean shouldLog = debugTicks % 100 == 0;
+//        boolean shouldLog = true;
         updateCombatState(shouldLog);
 
         List<SongRule> bestPlaylist = determineBestPlaylist(shouldLog);
@@ -250,73 +254,99 @@ public abstract class SoundManagerMixin {
         if (player == null || player.worldObj == null) return;
 
         long worldTime = mc.theWorld.getTotalWorldTime();
+
+
+        if (MusicPlayerState.consumeVictorySignalIfPresent()) {
+            System.out.println("[MusicPlayer LOG @ " + worldTime + "] Otrzymano sygnał zwycięstwa nad bossem.");
+            victoryCooldownEndTick = worldTime + 500;
+            lastCombatEventTick = -1;
+
+            MusicPlayerState.wasAttackJustTriggered();
+
+            hasLoggedCooldownEnd = false;
+            System.out.println("[MusicPlayer LOG @ " + worldTime + "] Stan walki zresetowany. Flaga ataku wyczyszczona. Cooldown zwycięstwa aktywny do ticku: " + victoryCooldownEndTick);
+            return;
+        }
+
+        if (worldTime <= victoryCooldownEndTick) {
+            return;
+        }
+
+        if (!hasLoggedCooldownEnd) {
+            System.out.println("[MusicPlayer LOG @ " + worldTime + "] Cooldown zwycięstwa zakończony. Wznawiam normalne sprawdzanie stanu walki.");
+            hasLoggedCooldownEnd = true;
+        }
+
         String reason = "None";
         boolean combatEventDetected = false;
 
-        List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(64.0, 64.0, 64.0));
-        boolean isBossPresent = false;
-        for (Entity entity : nearbyEntities) {
-            if (entity.isEntityAlive() && entity instanceof IBossDisplayData) { // Sprawdzamy ogólny interfejs bossa
-                isBossPresent = true;
-                break;
-            }
-        }
-
-        if (isBossPresent) {
-            if (log) System.out.println("[Music Player Combat LOG] -> Priorytet 1: Wykryto Bossa. Podtrzymuję walkę.");
-            combatEventDetected = true;
-            reason = "Sustained by Boss Presence";
-        } else {
-            if (log) System.out.println("[Music Player Combat LOG] -> Priorytet 1: Brak Bossa. Sprawdzam inne zagrożenia...");
-
-            boolean triggerFired = false;
-            boolean isThreatened = false;
-
-            List<Entity> nearbyThreats = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
-            for (Entity entity : nearbyThreats) {
-                if (entity.isEntityAlive() && (entity instanceof IMob || entity instanceof BTWSquidEntity || (entity instanceof EntityWolf && ((EntityWolf)entity).isAngry()))) {
-                    isThreatened = true;
+        if (worldTime > victoryCooldownEndTick) {
+            List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(64.0, 64.0, 64.0));
+            boolean isBossPresent = false;
+            for (Entity entity : nearbyEntities) {
+                if (entity.isEntityAlive() && entity instanceof IBossDisplayData) { // Sprawdzamy ogólny interfejs bossa
+                    isBossPresent = true;
                     break;
                 }
             }
 
-            if (player.hurtTime > 0 && isThreatened) {
-                if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Hurt (TRUE)");
-                triggerFired = true;
-                reason = "Player Hurt by Nearby Threat";
-            }
-            if (!triggerFired && MusicPlayerState.wasAttackJustTriggered()) {
-                if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Attacked (TRUE)");
-                triggerFired = true;
-                reason = "Player Initiated Attack";
-            }
-            if (!triggerFired && player.riddenByEntity instanceof BTWSquidEntity && player.riddenByEntity.isEntityAlive()) {
-                if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Squid Headcrab (TRUE)");
-                triggerFired = true;
-                reason = "Squid Headcrab Started";
-            }
+            if (isBossPresent) {
+                if (log)
+                    System.out.println("[Music Player Combat LOG] -> Priorytet 1: Wykryto Bossa. Podtrzymuję walkę.");
+                combatEventDetected = true;
+                reason = "Sustained by Boss Presence";
+            } else {
+                if (log)
+                    System.out.println("[Music Player Combat LOG] -> Priorytet 1: Brak Bossa. Sprawdzam inne zagrożenia...");
 
-            boolean sustainFired = false;
-            boolean isCurrentlyInCombat = (lastCombatEventTick > 0 && (worldTime - lastCombatEventTick) < 100);
+                boolean triggerFired = false;
+                boolean isThreatened = false;
 
-            if (isCurrentlyInCombat) {
-                if (isThreatened) {
-                    if (log) System.out.println("[Music Player Combat LOG] -> Podtrzymywacz: isThreatened (TRUE)");
-                    sustainFired = true;
-                    reason = "Sustained by Threat Presence";
+                List<Entity> nearbyThreats = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
+                for (Entity entity : nearbyThreats) {
+                    if (entity.isEntityAlive() && (entity instanceof IMob || entity instanceof BTWSquidEntity || (entity instanceof EntityWolf && ((EntityWolf) entity).isAngry()))) {
+                        isThreatened = true;
+                        break;
+                    }
+                }
+
+                if (player.hurtTime > 0 && isThreatened) {
+                    if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Hurt (TRUE)");
+                    triggerFired = true;
+                    reason = "Player Hurt by Nearby Threat";
+                }
+                if (!triggerFired && MusicPlayerState.wasAttackJustTriggered()) {
+                    if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Attacked (TRUE)");
+                    triggerFired = true;
+                    reason = "Player Initiated Attack";
+                }
+                if (!triggerFired && player.riddenByEntity instanceof BTWSquidEntity && player.riddenByEntity.isEntityAlive()) {
+                    if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Squid Headcrab (TRUE)");
+                    triggerFired = true;
+                    reason = "Squid Headcrab Started";
+                }
+
+                boolean sustainFired = false;
+                boolean isCurrentlyInCombat = (lastCombatEventTick > 0 && (worldTime - lastCombatEventTick) < 100);
+
+                if (isCurrentlyInCombat) {
+                    if (isThreatened) {
+                        if (log) System.out.println("[Music Player Combat LOG] -> Podtrzymywacz: isThreatened (TRUE)");
+                        sustainFired = true;
+                        reason = "Sustained by Threat Presence";
+                    }
+                }
+
+                if (triggerFired || sustainFired) {
+                    combatEventDetected = true;
                 }
             }
 
-            if (triggerFired || sustainFired) {
-                combatEventDetected = true;
+            if (combatEventDetected) {
+                if (lastCombatEventTick < worldTime - 5)
+                    System.out.println("[MusicPlayer LOG @ " + worldTime + "] ZDARZENIE BOJOWE WYKRYTE. Powód: " + reason);
+                lastCombatEventTick = worldTime;
             }
-        }
-
-        if (combatEventDetected) {
-            if (log) System.out.println("[Music Player Combat LOG] ===> ZDARZENIE BOJOWE WYKRYTE! Resetuję licznik. Powód: " + reason + " <===");
-            lastCombatEventTick = worldTime;
-        } else {
-            if (log) System.out.println("[Music Player Combat LOG] -> Brak zdarzenia bojowego w tej klatce.");
         }
     }
 
@@ -324,6 +354,18 @@ public abstract class SoundManagerMixin {
         Minecraft mc = Minecraft.getMinecraft();
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null || player.worldObj == null) return false;
+        long worldTime = mc.theWorld.getTotalWorldTime();
+
+        if (conditions.victory_after_boss != null) {
+            boolean victoryActive = worldTime <= victoryCooldownEndTick;
+            if (log) System.out.println("[LOG @ " + worldTime + "] checkConditions: Sprawdzam 'victory_after_boss'. Aktywny: " + victoryActive);
+            return victoryActive;
+        }
+
+        if (worldTime <= victoryCooldownEndTick && (conditions.is_in_combat != null || conditions.boss_type != null)) {
+            return false;
+        }
+
 
         if (conditions.boss_type != null) {
             boolean isFightingBoss = false;
@@ -358,7 +400,7 @@ public abstract class SoundManagerMixin {
             boolean isInCombat = false;
             if (lastCombatEventTick > 0) {
                 long timeSinceLastEvent = mc.theWorld.getTotalWorldTime() - lastCombatEventTick;
-                if (timeSinceLastEvent < 100) { // 5 sekund cooldownu
+                if (timeSinceLastEvent < 100) {
                     isInCombat = true;
                 }
             }
