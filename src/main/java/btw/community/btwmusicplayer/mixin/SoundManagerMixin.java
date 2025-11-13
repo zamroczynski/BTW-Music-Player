@@ -7,6 +7,7 @@ import btw.community.btwmusicplayer.data.SongConditions;
 import btw.community.btwmusicplayer.data.SongRule;
 import btw.entity.mob.BTWSquidEntity;
 import btw.entity.mob.DireWolfEntity;
+import net.minecraft.src.EntityDragon;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
@@ -252,58 +253,62 @@ public abstract class SoundManagerMixin {
         String reason = "None";
         boolean combatEventDetected = false;
 
-        boolean isThreatenedByHostileMob = false;
-        boolean isActivelyAttackedBySquid = false;
-
-        List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
+        List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(64.0, 64.0, 64.0));
+        boolean isBossPresent = false;
         for (Entity entity : nearbyEntities) {
-            if (entity.isEntityAlive()) {
-                if (entity instanceof IMob || (entity instanceof EntityWolf && ((EntityWolf)entity).isAngry()) || entity instanceof DireWolfEntity) {
-                    isThreatenedByHostileMob = true;
-                }
-                if (entity instanceof BTWSquidEntity) {
-                    if (player.riddenByEntity == entity || ((BTWSquidEntityAccessor)entity).getTentacleAttackInProgressCounter() >= 0) {
-                        isActivelyAttackedBySquid = true;
-                    }
-                }
+            if (entity.isEntityAlive() && entity instanceof IBossDisplayData) { // Sprawdzamy ogólny interfejs bossa
+                isBossPresent = true;
+                break;
             }
         }
 
-        if (player.hurtTime > 0) {
-            if (log) System.out.println("[Music Player Combat LOG] -> Sprawdzam Zapalnik: player.hurtTime > 0 (TRUE)");
-            if (isThreatenedByHostileMob || isActivelyAttackedBySquid) {
-                if (log) System.out.println("[Music Player Combat LOG] ---> Warunek spełniony: isThreatened (TRUE)");
-                combatEventDetected = true;
+        if (isBossPresent) {
+            if (log) System.out.println("[Music Player Combat LOG] -> Priorytet 1: Wykryto Bossa. Podtrzymuję walkę.");
+            combatEventDetected = true;
+            reason = "Sustained by Boss Presence";
+        } else {
+            if (log) System.out.println("[Music Player Combat LOG] -> Priorytet 1: Brak Bossa. Sprawdzam inne zagrożenia...");
+
+            boolean triggerFired = false;
+            boolean isThreatened = false;
+
+            List<Entity> nearbyThreats = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
+            for (Entity entity : nearbyThreats) {
+                if (entity.isEntityAlive() && (entity instanceof IMob || entity instanceof BTWSquidEntity || (entity instanceof EntityWolf && ((EntityWolf)entity).isAngry()))) {
+                    isThreatened = true;
+                    break;
+                }
+            }
+
+            if (player.hurtTime > 0 && isThreatened) {
+                if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Hurt (TRUE)");
+                triggerFired = true;
                 reason = "Player Hurt by Nearby Threat";
             }
-        }
-
-        if (!combatEventDetected && MusicPlayerState.wasAttackJustTriggered()) {
-            if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: wasAttackJustTriggered (TRUE)");
-            combatEventDetected = true;
-            reason = "Player Initiated Attack";
-        }
-
-        if (!combatEventDetected && isActivelyAttackedBySquid) {
-            if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: isActivelyAttackedBySquid (TRUE)");
-            combatEventDetected = true;
-            reason = "Squid Attack Started";
-        }
-
-        boolean isCurrentlyInCombat = (lastCombatEventTick > 0 && (worldTime - lastCombatEventTick) < 100);
-        if (log && !combatEventDetected) System.out.println("[Music Player Combat LOG] -> Stan: isCurrentlyInCombat (" + isCurrentlyInCombat + ")");
-
-        if (!combatEventDetected && isCurrentlyInCombat) {
-            if (log) System.out.println("[Music Player Combat LOG] -> Sprawdzam podtrzymanie...");
-            if (isThreatenedByHostileMob) {
-                if (log) System.out.println("[Music Player Combat LOG] ---> Warunek spełniony: isThreatenedByHostileMob (TRUE)");
-                combatEventDetected = true;
-                reason = "Sustained by Hostile Mob Presence";
+            if (!triggerFired && MusicPlayerState.wasAttackJustTriggered()) {
+                if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Attacked (TRUE)");
+                triggerFired = true;
+                reason = "Player Initiated Attack";
             }
-            else if (isActivelyAttackedBySquid) {
-                if (log) System.out.println("[Music Player Combat LOG] ---> Warunek spełniony: isActivelyAttackedBySquid (TRUE)");
+            if (!triggerFired && player.riddenByEntity instanceof BTWSquidEntity && player.riddenByEntity.isEntityAlive()) {
+                if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Squid Headcrab (TRUE)");
+                triggerFired = true;
+                reason = "Squid Headcrab Started";
+            }
+
+            boolean sustainFired = false;
+            boolean isCurrentlyInCombat = (lastCombatEventTick > 0 && (worldTime - lastCombatEventTick) < 100);
+
+            if (isCurrentlyInCombat) {
+                if (isThreatened) {
+                    if (log) System.out.println("[Music Player Combat LOG] -> Podtrzymywacz: isThreatened (TRUE)");
+                    sustainFired = true;
+                    reason = "Sustained by Threat Presence";
+                }
+            }
+
+            if (triggerFired || sustainFired) {
                 combatEventDetected = true;
-                reason = "Sustained by Squid Attack";
             }
         }
 
@@ -332,7 +337,11 @@ public abstract class SoundManagerMixin {
                         detectedBoss = "wither";
                         break;
                     }
-                    // TODO: Ender Dragon
+                    else if (conditions.boss_type.equalsIgnoreCase("ender_dragon") && entity instanceof EntityDragon) {
+                        isFightingBoss = true;
+                        detectedBoss = "ender_dragon";
+                        break;
+                    }
                 }
             }
 
