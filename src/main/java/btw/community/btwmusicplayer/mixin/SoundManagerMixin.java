@@ -1,9 +1,11 @@
 package btw.community.btwmusicplayer.mixin;
 
 import btw.community.btwmusicplayer.ModConfig;
+import btw.community.btwmusicplayer.MusicPlayerState;
 import btw.community.btwmusicplayer.MusicState;
 import btw.community.btwmusicplayer.data.SongConditions;
 import btw.community.btwmusicplayer.data.SongRule;
+import btw.entity.mob.BTWSquidEntity;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
@@ -31,10 +33,6 @@ public abstract class SoundManagerMixin {
 
     private static List<SongRule> currentPlaylist = new ArrayList<>();
     private static int currentPlaylistIndex = 0;
-
-//    private static List<SongRule> previousPlaylist = new ArrayList<>();
-//    private static int previousPlaylistIndex = 0;
-//    private static int previousPlaylistPriority = -1;
 
     private static String currentSongFile = null;
 
@@ -249,34 +247,60 @@ public abstract class SoundManagerMixin {
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null || player.worldObj == null) return;
 
-        boolean isThreatened = false;
+        boolean combatEventDetected = false;
         String reason = "None";
+        long worldTime = mc.theWorld.getTotalWorldTime();
 
-        List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
-
-        for (Entity entity : nearbyEntities) {
-            if (entity instanceof IMob && entity.isEntityAlive()) {
-                isThreatened = true;
-                break;
+        if (player.hurtTime > 0) {
+            List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
+            for (Entity entity : nearbyEntities) {
+                if (entity instanceof IMob || entity instanceof BTWSquidEntity || (entity instanceof EntityWolf && ((EntityWolf)entity).isAngry())) {
+                    if(entity.isEntityAlive()) {
+                        combatEventDetected = true;
+                        reason = "Player Hurt by Nearby Threat";
+                        break;
+                    }
+                }
             }
         }
 
-        long worldTime = mc.theWorld.getTotalWorldTime();
-        boolean isCurrentlyInCombat = (lastCombatEventTick > 0 && (worldTime - lastCombatEventTick) < 100);
-
-        if (player.hurtTime > 0 && isThreatened) {
-            lastCombatEventTick = worldTime;
-            reason = "Player Hurt";
+        if (!combatEventDetected && MusicPlayerState.wasAttackJustTriggered()) {
+            combatEventDetected = true;
+            reason = "Player Initiated Attack";
         }
 
-        else if (isCurrentlyInCombat && isThreatened) {
-            lastCombatEventTick = worldTime;
-            reason = "Sustained by Threat";
+        if (!combatEventDetected) {
+            List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(16.0, 8.0, 16.0));
+            for (Entity entity : nearbyEntities) {
+                if (entity.isEntityAlive()) {
+                    if ((entity instanceof IMob || (entity instanceof EntityWolf && ((EntityWolf)entity).isAngry())) && entity instanceof EntityLiving) {
+                        if (((EntityLiving)entity).getAttackTarget() == player) {
+                            combatEventDetected = true;
+                            reason = "Sustained by Mob Targeting";
+                            break;
+                        }
+                    }
+                    if (player.riddenByEntity == entity && entity instanceof BTWSquidEntity) {
+                        combatEventDetected = true;
+                        reason = "Sustained by Squid Headcrab";
+                        break;
+                    }
+                    if (entity instanceof BTWSquidEntity && ((BTWSquidEntityAccessor)entity).getTentacleAttackInProgressCounter() >= 0) {
+                        combatEventDetected = true;
+                        reason = "Sustained by Squid Tentacle Attack";
+                        break;
+                    }
+                }
+            }
         }
 
-//        if (log) {
-//            System.out.println("[Music Player Combat Debug] Threatened: " + isThreatened + ". Update Reason: " + reason);
-//        }
+        if (combatEventDetected) {
+            lastCombatEventTick = worldTime;
+        }
+
+        if (log) {
+            System.out.println("[Music Player Combat Debug] Event Detected: " + combatEventDetected + " (Reason: " + reason + ")");
+        }
     }
 
     private boolean checkConditions(SongConditions conditions, boolean log) {
@@ -288,19 +312,17 @@ public abstract class SoundManagerMixin {
             boolean isInCombat = false;
             if (lastCombatEventTick > 0) {
                 long timeSinceLastEvent = mc.theWorld.getTotalWorldTime() - lastCombatEventTick;
-                if (timeSinceLastEvent < 100) {
+                if (timeSinceLastEvent < 100) { // 5 sekund cooldownu
                     isInCombat = true;
                 }
             }
-
-//            if (log) {
-//                System.out.println(
-//                        "[Music Player Debug] W walce: " + isInCombat +
-//                                " (lastEvent: " + lastCombatEventTick +
-//                                ", timeSince: " + (mc.theWorld.getTotalWorldTime() - lastCombatEventTick) + ")"
-//                );
-//            }
-
+            if (log) {
+                System.out.println(
+                        "[Music Player State Debug] W walce: " + isInCombat +
+                                " (lastEvent: " + lastCombatEventTick +
+                                ", timeSince: " + (mc.theWorld.getTotalWorldTime() - lastCombatEventTick) + ")"
+                );
+            }
             if (conditions.is_in_combat != isInCombat) return false;
         }
 
@@ -316,7 +338,7 @@ public abstract class SoundManagerMixin {
             boolean isCave = isBelowSeaLevel && !canSeeSky;
 
             if (log) {
-                System.out.println("[Music Player Debug] Jaskinia: " + isCave + " (Y: " + (int)player.posY + ", CanSeeSky: " + canSeeSky + ")");
+//                System.out.println("[Music Player Debug] Jaskinia: " + isCave + " (Y: " + (int)player.posY + ", CanSeeSky: " + canSeeSky + ")");
             }
 
             if (conditions.is_in_cave != isCave) {
@@ -333,7 +355,7 @@ public abstract class SoundManagerMixin {
             }
 
             if (log) {
-                System.out.println("[Music Player Debug] Pogoda: " + currentWeather);
+//                System.out.println("[Music Player Debug] Pogoda: " + currentWeather);
             }
 
             if (!conditions.weather.equalsIgnoreCase(currentWeather)) {

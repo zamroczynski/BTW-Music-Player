@@ -7,7 +7,9 @@
   ],
   "client": [
     "SoundManagerMixin",
-    "SoundPoolAccessor"
+    "SoundPoolAccessor",
+    "PlayerControllerMPMixin",
+    "BTWSquidEntityAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
