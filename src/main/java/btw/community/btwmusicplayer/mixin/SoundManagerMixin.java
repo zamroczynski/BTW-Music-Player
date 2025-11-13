@@ -1,6 +1,7 @@
 package btw.community.btwmusicplayer.mixin;
 
 import btw.community.btwmusicplayer.ModConfig;
+import btw.community.btwmusicplayer.MusicLogger;
 import btw.community.btwmusicplayer.MusicPlayerState;
 import btw.community.btwmusicplayer.MusicState;
 import btw.community.btwmusicplayer.data.SongConditions;
@@ -58,8 +59,7 @@ public abstract class SoundManagerMixin {
     }
 
     private void loadSoundPacks(File gameDir) {
-        System.out.println("--- [BTW Music Player] Rozpoczynam ładowanie Sound Packów... ---");
-        System.out.println("--- [BTW Music Player] DIAGNOSTYKA: Używam katalogu gry: " + gameDir.getAbsolutePath());
+        MusicLogger.log("--- [BTW Music Player] Starting to load Sound Packs... ---");
 
         File soundPacksDir = new File(gameDir, "soundpacks");
 
@@ -67,7 +67,7 @@ public abstract class SoundManagerMixin {
         boolean loadAll = config.loadingMode.equalsIgnoreCase("ALL");
 
         if (!soundPacksDir.exists() || !soundPacksDir.isDirectory()) {
-            System.out.println("--- [BTW Music Player] Folder '" + soundPacksDir.getAbsolutePath() + "' nie istnieje lub nie jest folderem. Ładowanie przerwane.");
+            MusicLogger.log("--- [BTW Music Player] Folder '" + soundPacksDir.getAbsolutePath() + "' does not exist or is not a folder. Loading interrupted.");
             return;
         }
 
@@ -77,27 +77,27 @@ public abstract class SoundManagerMixin {
         for (File soundPack : soundPacksDir.listFiles()) {
             if (soundPack.isDirectory()) {
                 if (!loadAll && !soundPack.getName().equalsIgnoreCase(config.singlePackName)) {
-                    System.out.println("--- [BTW Music Player] Pomijam pack: " + soundPack.getName() + " (Single mode: " + config.singlePackName + ")");
+                    MusicLogger.log("--- [BTW Music Player] Skip pack: " + soundPack.getName() + " (Single mode: " + config.singlePackName + ")");
                     continue;
                 }
                 File songsJsonFile = new File(soundPack, "songs.json");
                 if (songsJsonFile.exists()) {
-                    System.out.println("--- [BTW Music Player] Znaleziono sound pack: " + soundPack.getName());
+                    MusicLogger.log("--- [BTW Music Player] Found sound pack: " + soundPack.getName());
                     try (FileReader reader = new FileReader(songsJsonFile)) {
                         List<SongRule> rules = gson.fromJson(reader, songRuleListType);
                         for (SongRule rule : rules) {
                             rule.soundPackPath = soundPack.getAbsolutePath();
                         }
                         allSongRules.addAll(rules);
-                        System.out.println("--- [BTW Music Player] Załadowano " + rules.size() + " reguł.");
+                        MusicLogger.log("--- [BTW Music Player] Load: " + rules.size() + " rules.");
                     } catch (Exception e) {
-                        System.err.println("--- [BTW Music Player] Błąd podczas ładowania sound packa: " + soundPack.getName());
+                        MusicLogger.error("--- [BTW Music Player] Error while loading sound pack: " + soundPack.getName());
                         e.printStackTrace();
                     }
                 }
             }
         }
-        System.out.println("--- [BTW Music Player] Zakończono ładowanie. Całkowita liczba reguł: " + allSongRules.size());
+        MusicLogger.log("--- [BTW Music Player] Loading complete. Total number of rules: " + allSongRules.size());
     }
 
     @Inject(method = "playRandomMusicIfReady", at = @At("HEAD"), cancellable = true)
@@ -115,7 +115,7 @@ public abstract class SoundManagerMixin {
         String targetSongFile = null;
         if (!bestPlaylist.isEmpty()) {
             if (!arePlaylistsEqual(bestPlaylist, currentPlaylist)) {
-                if (shouldLog) System.out.println("[Music Player Playlist] Zmiana kontekstu, tworzę nową playlistę.");
+                if (shouldLog) MusicLogger.log("[Music Player Playlist] Change of context. Creating a new playlist.");
                 currentPlaylist = bestPlaylist;
                 Collections.shuffle(currentPlaylist);
                 currentPlaylistIndex = 0;
@@ -141,10 +141,10 @@ public abstract class SoundManagerMixin {
 
             case PLAYING:
                 if (!this.sndSystem.playing("BgMusic")) {
-                    if (shouldLog) System.out.println("[Music Player Playlist Debug] Utwór '" + currentSongFile + "' zakończył się.");
+                    if (shouldLog) MusicLogger.log("[Music Player Playlist Debug] Song '" + currentSongFile + "' ended.");
                     currentPlaylistIndex = (currentPlaylistIndex + 1) % currentPlaylist.size();
                     String nextSong = currentPlaylist.get(currentPlaylistIndex).file;
-                    if (shouldLog) System.out.println("[Music Player Playlist Debug] Przechodzę do następnego: '" + nextSong + "'");
+                    if (shouldLog) MusicLogger.log("[Music Player Playlist Debug] : Moving on to the next one'" + nextSong + "'");
 
                     currentSongFile = nextSong;
                     playNewSong(currentPlaylist.get(currentPlaylistIndex), this.options.musicVolume);
@@ -166,7 +166,7 @@ public abstract class SoundManagerMixin {
                     changeState(MusicState.PLAYING, shouldLog);
                 } else {
                     this.sndSystem.setVolume("BgMusic", progress * options.musicVolume);
-                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading In: " + currentSongFile + " (" + (int)(progress * 100) + "%)");
+                    if (shouldLog) MusicLogger.log("[Music Player Fade Debug] Fading In: " + currentSongFile + " (" + (int)(progress * 100) + "%)");
                 }
                 if (targetSongFile != null && !targetSongFile.equals(currentSongFile)) {
                     transitionStartTime = currentTime;
@@ -188,7 +188,7 @@ public abstract class SoundManagerMixin {
                     }
                 } else {
                     this.sndSystem.setVolume("BgMusic", (1.0f - progress) * options.musicVolume);
-                    if (shouldLog) System.out.println("[Music Player Fade Debug] Fading Out... (" + (int)(progress * 100) + "%)");
+                    if (shouldLog) MusicLogger.log("[Music Player Fade Debug] Fading Out... (" + (int)(progress * 100) + "%)");
                 }
                 break;
         }
@@ -226,7 +226,7 @@ public abstract class SoundManagerMixin {
 
     private void changeState(MusicState newState, boolean log) {
         if (musicState != newState) {
-            if (log) System.out.println("[Music Player State Debug] Zmiana stanu: " + musicState + " -> " + newState);
+            if (log) MusicLogger.log("[Music Player State Debug] Change of status: " + musicState + " -> " + newState);
             musicState = newState;
         }
     }
@@ -240,10 +240,10 @@ public abstract class SoundManagerMixin {
                 this.sndSystem.setVolume("BgMusic", initialVolume * options.musicVolume);
                 this.sndSystem.play("BgMusic");
             } else {
-                System.err.println("[Music Player] BŁĄD: Plik nie istnieje: " + songFile.getAbsolutePath());
+                MusicLogger.error("[Music Player] ERROR: File does not exist: " + songFile.getAbsolutePath());
             }
         } catch (Exception e) {
-            System.err.println("[Music Player] BŁĄD: Nie można odtworzyć pliku: " + rule.file);
+            MusicLogger.error("[Music Player] ERROR: File cannot be open: " + rule.file);
             e.printStackTrace();
         }
     }
@@ -257,14 +257,14 @@ public abstract class SoundManagerMixin {
 
 
         if (MusicPlayerState.consumeVictorySignalIfPresent()) {
-            System.out.println("[MusicPlayer LOG @ " + worldTime + "] Otrzymano sygnał zwycięstwa nad bossem.");
+            MusicLogger.log("[MusicPlayer LOG @ " + worldTime + "] Signal received: boss defeated.");
             victoryCooldownEndTick = worldTime + 500;
             lastCombatEventTick = -1;
 
             MusicPlayerState.wasAttackJustTriggered();
 
             hasLoggedCooldownEnd = false;
-            System.out.println("[MusicPlayer LOG @ " + worldTime + "] Stan walki zresetowany. Flaga ataku wyczyszczona. Cooldown zwycięstwa aktywny do ticku: " + victoryCooldownEndTick);
+            MusicLogger.log("[MusicPlayer LOG @ " + worldTime + "] Battle status reset. Attack flag cleared. Victory cooldown active until tick: " + victoryCooldownEndTick);
             return;
         }
 
@@ -273,7 +273,7 @@ public abstract class SoundManagerMixin {
         }
 
         if (!hasLoggedCooldownEnd) {
-            System.out.println("[MusicPlayer LOG @ " + worldTime + "] Cooldown zwycięstwa zakończony. Wznawiam normalne sprawdzanie stanu walki.");
+            MusicLogger.log("[MusicPlayer LOG @ " + worldTime + "] Victory cooldown complete. Resuming normal combat status checks.");
             hasLoggedCooldownEnd = true;
         }
 
@@ -284,7 +284,7 @@ public abstract class SoundManagerMixin {
             List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(64.0, 64.0, 64.0));
             boolean isBossPresent = false;
             for (Entity entity : nearbyEntities) {
-                if (entity.isEntityAlive() && entity instanceof IBossDisplayData) { // Sprawdzamy ogólny interfejs bossa
+                if (entity.isEntityAlive() && entity instanceof IBossDisplayData) {
                     isBossPresent = true;
                     break;
                 }
@@ -292,12 +292,12 @@ public abstract class SoundManagerMixin {
 
             if (isBossPresent) {
                 if (log)
-                    System.out.println("[Music Player Combat LOG] -> Priorytet 1: Wykryto Bossa. Podtrzymuję walkę.");
+                    MusicLogger.log("[Music Player Combat LOG] -> Priority 1: Boss detected. Continue the fight.");
                 combatEventDetected = true;
                 reason = "Sustained by Boss Presence";
             } else {
                 if (log)
-                    System.out.println("[Music Player Combat LOG] -> Priorytet 1: Brak Bossa. Sprawdzam inne zagrożenia...");
+                    MusicLogger.log("[Music Player Combat LOG] -> Priority 1: No Boss. Checking other threats...");
 
                 boolean triggerFired = false;
                 boolean isThreatened = false;
@@ -311,17 +311,17 @@ public abstract class SoundManagerMixin {
                 }
 
                 if (player.hurtTime > 0 && isThreatened) {
-                    if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Hurt (TRUE)");
+                    if (log) MusicLogger.log("[Music Player Combat LOG] -> Igniter: Player Hurt (TRUE)");
                     triggerFired = true;
                     reason = "Player Hurt by Nearby Threat";
                 }
                 if (!triggerFired && MusicPlayerState.wasAttackJustTriggered()) {
-                    if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Player Attacked (TRUE)");
+                    if (log) MusicLogger.log("[Music Player Combat LOG] -> Igniter: Player Attacked (TRUE)");
                     triggerFired = true;
                     reason = "Player Initiated Attack";
                 }
                 if (!triggerFired && player.riddenByEntity instanceof BTWSquidEntity && player.riddenByEntity.isEntityAlive()) {
-                    if (log) System.out.println("[Music Player Combat LOG] -> Zapalnik: Squid Headcrab (TRUE)");
+                    if (log) MusicLogger.log("[Music Player Combat LOG] -> Igniter: Squid Headcrab (TRUE)");
                     triggerFired = true;
                     reason = "Squid Headcrab Started";
                 }
@@ -331,7 +331,7 @@ public abstract class SoundManagerMixin {
 
                 if (isCurrentlyInCombat) {
                     if (isThreatened) {
-                        if (log) System.out.println("[Music Player Combat LOG] -> Podtrzymywacz: isThreatened (TRUE)");
+                        if (log) MusicLogger.log("[Music Player Combat LOG] -> Support: isThreatened (TRUE)");
                         sustainFired = true;
                         reason = "Sustained by Threat Presence";
                     }
@@ -344,7 +344,7 @@ public abstract class SoundManagerMixin {
 
             if (combatEventDetected) {
                 if (lastCombatEventTick < worldTime - 5)
-                    System.out.println("[MusicPlayer LOG @ " + worldTime + "] ZDARZENIE BOJOWE WYKRYTE. Powód: " + reason);
+                    MusicLogger.log("[MusicPlayer LOG @ " + worldTime + "] COMBAT EVENT DETECTED. Reason: " + reason);
                 lastCombatEventTick = worldTime;
             }
         }
@@ -358,7 +358,7 @@ public abstract class SoundManagerMixin {
 
         if (conditions.victory_after_boss != null) {
             boolean victoryActive = worldTime <= victoryCooldownEndTick;
-            if (log) System.out.println("[LOG @ " + worldTime + "] checkConditions: Sprawdzam 'victory_after_boss'. Aktywny: " + victoryActive);
+            if (log) MusicLogger.log("[LOG @ " + worldTime + "] checkConditions: 'victory_after_boss'. Active: " + victoryActive);
             return victoryActive;
         }
 
@@ -388,7 +388,7 @@ public abstract class SoundManagerMixin {
             }
 
             if (log) {
-                System.out.println("[Music Player Debug] Walka z bossem (" + conditions.boss_type + "): " + isFightingBoss + ". Wykryto: " + detectedBoss);
+                MusicLogger.log("[Music Player Debug] Boss fight: (" + conditions.boss_type + "): " + isFightingBoss + ". Detected: " + detectedBoss);
             }
 
             if (!isFightingBoss) {
@@ -405,8 +405,8 @@ public abstract class SoundManagerMixin {
                 }
             }
             if (log) {
-                System.out.println(
-                        "[Music Player State Debug] W walce: " + isInCombat +
+                MusicLogger.log(
+                        "[Music Player State Debug] Combat: " + isInCombat +
                                 " (lastEvent: " + lastCombatEventTick +
                                 ", timeSince: " + (mc.theWorld.getTotalWorldTime() - lastCombatEventTick) + ")"
                 );
@@ -426,7 +426,7 @@ public abstract class SoundManagerMixin {
             boolean isCave = isBelowSeaLevel && !canSeeSky;
 
             if (log) {
-//                System.out.println("[Music Player Debug] Jaskinia: " + isCave + " (Y: " + (int)player.posY + ", CanSeeSky: " + canSeeSky + ")");
+                MusicLogger.log("[Music Player Debug] Cave: " + isCave + " (Y: " + (int)player.posY + ", CanSeeSky: " + canSeeSky + ")");
             }
 
             if (conditions.is_in_cave != isCave) {
@@ -443,7 +443,7 @@ public abstract class SoundManagerMixin {
             }
 
             if (log) {
-//                System.out.println("[Music Player Debug] Pogoda: " + currentWeather);
+                MusicLogger.log("[Music Player Debug] Weather: " + currentWeather);
             }
 
             if (!conditions.weather.equalsIgnoreCase(currentWeather)) {
@@ -454,14 +454,14 @@ public abstract class SoundManagerMixin {
         if (conditions.time_of_day != null) {
             long time = player.worldObj.getWorldTime() % 24000;
             String timeName = (time >= 0 && time < 13000) ? "day" : "night";
-//            if (log) System.out.println("[Music Player Debug] Czas: " + time + " (" + timeName + ")");
+            if (log) MusicLogger.log("[Music Player Debug] Time: " + time + " (" + timeName + ")");
             if (!conditions.time_of_day.equalsIgnoreCase(timeName)) return false;
         }
 
         if (conditions.biome != null) {
             String biomeName = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
             String normalizedBiomeName = biomeName.toLowerCase().replace(' ', '_');
-//            if (log) System.out.println("[Music Player Debug] Biom: " + biomeName + " (" + normalizedBiomeName + ")");
+            if (log) MusicLogger.log("[Music Player Debug] Biom: " + biomeName + " (" + normalizedBiomeName + ")");
             if (!conditions.biome.equalsIgnoreCase(normalizedBiomeName)) return false;
         }
 

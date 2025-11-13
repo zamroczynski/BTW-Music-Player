@@ -3,7 +3,7 @@
   "id": "btw-music-player",
   "version": "${version}",
   "name": "BTW Music Player",
-  "description": "TODO",
+  "description": "A dynamic music engine for Better Than Wolves CE. Create custom sound packs where music plays contextually based on dimension, biome, time of day, combat, boss battles, and more. Features smooth transitions and an intelligent combat music system.",
   "authors": [
     "Bard Radogost"
   ],

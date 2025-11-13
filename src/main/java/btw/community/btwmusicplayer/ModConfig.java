@@ -16,6 +16,8 @@ public class ModConfig {
     private static ModConfig instance;
     private final File configFile;
 
+    public boolean enableDebugLogging = true; // TODO change to false when publish addon
+
     private ModConfig() {
         File configDir = new File(FabricLoader.getInstance().getGameDir().toFile(), "config");
         if (!configDir.exists()) {
@@ -39,13 +41,14 @@ public class ModConfig {
                 props.load(in);
                 this.loadingMode = props.getProperty("soundpack_loading_mode", DEFAULT_LOADING_MODE);
                 this.singlePackName = props.getProperty("single_soundpack_name", DEFAULT_SINGLE_PACK);
-                System.out.println("[ModConfig] Załadowano konfigurację. Tryb: " + this.loadingMode + ", Pack: " + this.singlePackName);
+                this.enableDebugLogging = Boolean.parseBoolean(props.getProperty("enable_debug_logging", "false"));
+                System.out.println("[ModConfig] Configuration loaded. Mode: " + this.loadingMode + ", Pack: " + this.singlePackName);
             } catch (IOException e) {
-                System.err.println("[ModConfig] Błąd odczytu pliku konfiguracyjnego, używam domyślnych.");
+                MusicLogger.log("[ModConfig] Error reading configuration file, using defaults.");
                 e.printStackTrace();
             }
         } else {
-            System.out.println("[ModConfig] Plik konfiguracyjny nie istnieje. Tworzę domyślny.");
+            System.out.println("[ModConfig] The configuration file does not exist. Creating a default one.");
             saveConfig();
         }
     }
@@ -54,11 +57,12 @@ public class ModConfig {
         Properties props = new Properties();
         props.setProperty("soundpack_loading_mode", this.loadingMode);
         props.setProperty("single_soundpack_name", this.singlePackName);
+        props.setProperty("enable_debug_logging", String.valueOf(this.enableDebugLogging));
 
         try (FileOutputStream out = new FileOutputStream(configFile)) {
             props.store(out, "BTW Music Player Mod Configuration");
         } catch (IOException e) {
-            System.err.println("[ModConfig] Błąd zapisu pliku konfiguracyjnego.");
+            MusicLogger.log("[ModConfig] Configuration file write error.");
             e.printStackTrace();
         }
     }
