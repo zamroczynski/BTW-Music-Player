@@ -1,6 +1,7 @@
 package btw.community.btwmusicplayer.mixin;
 
 import btw.community.btwmusicplayer.MusicPlayerState;
+import btw.entity.mob.BTWSquidEntity;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,7 +28,7 @@ public class PlayerControllerMPMixin {
             shouldTriggerCombat = true;
             targetType = "Wolf";
         }
-        else if (target instanceof EntitySquid) {
+        else if (target instanceof BTWSquidEntity) {
             shouldTriggerCombat = true;
             targetType = "Squid";
         }
