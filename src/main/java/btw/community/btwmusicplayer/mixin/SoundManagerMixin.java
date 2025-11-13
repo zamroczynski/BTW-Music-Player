@@ -252,7 +252,6 @@ public abstract class SoundManagerMixin {
         String reason = "None";
         boolean combatEventDetected = false;
 
-        // --- ETAP 1: ZBIERANIE DANYCH ---
         boolean isThreatenedByHostileMob = false;
         boolean isActivelyAttackedBySquid = false;
 
@@ -270,9 +269,6 @@ public abstract class SoundManagerMixin {
             }
         }
 
-        // --- ETAP 2: LOGIKA DECYZYJNA z LOGOWANIEM KAŻDEGO KROKU ---
-
-        // ZAPALNIKI (rozpoczynają walkę)
         if (player.hurtTime > 0) {
             if (log) System.out.println("[Music Player Combat LOG] -> Sprawdzam Zapalnik: player.hurtTime > 0 (TRUE)");
             if (isThreatenedByHostileMob || isActivelyAttackedBySquid) {
@@ -294,19 +290,16 @@ public abstract class SoundManagerMixin {
             reason = "Squid Attack Started";
         }
 
-        // PODTRZYMYWACZ (podtrzymuje już trwającą walkę)
         boolean isCurrentlyInCombat = (lastCombatEventTick > 0 && (worldTime - lastCombatEventTick) < 100);
         if (log && !combatEventDetected) System.out.println("[Music Player Combat LOG] -> Stan: isCurrentlyInCombat (" + isCurrentlyInCombat + ")");
 
         if (!combatEventDetected && isCurrentlyInCombat) {
             if (log) System.out.println("[Music Player Combat LOG] -> Sprawdzam podtrzymanie...");
-            // WRACAMY DO TWOJEJ NIEZAWODNEJ LOGIKI: ogólne zagrożenie wystarczy
             if (isThreatenedByHostileMob) {
                 if (log) System.out.println("[Music Player Combat LOG] ---> Warunek spełniony: isThreatenedByHostileMob (TRUE)");
                 combatEventDetected = true;
                 reason = "Sustained by Hostile Mob Presence";
             }
-            // I dodajemy do niej aktywne zagrożenie od kałamarnicy
             else if (isActivelyAttackedBySquid) {
                 if (log) System.out.println("[Music Player Combat LOG] ---> Warunek spełniony: isActivelyAttackedBySquid (TRUE)");
                 combatEventDetected = true;
@@ -314,7 +307,6 @@ public abstract class SoundManagerMixin {
             }
         }
 
-        // --- ETAP 3: DECYZJA ---
         if (combatEventDetected) {
             if (log) System.out.println("[Music Player Combat LOG] ===> ZDARZENIE BOJOWE WYKRYTE! Resetuję licznik. Powód: " + reason + " <===");
             lastCombatEventTick = worldTime;
@@ -327,6 +319,31 @@ public abstract class SoundManagerMixin {
         Minecraft mc = Minecraft.getMinecraft();
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null || player.worldObj == null) return false;
+
+        if (conditions.boss_type != null) {
+            boolean isFightingBoss = false;
+            String detectedBoss = "none";
+
+            List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(64.0, 64.0, 64.0));
+            for (Entity entity : nearbyEntities) {
+                if (entity.isEntityAlive()) {
+                    if (conditions.boss_type.equalsIgnoreCase("wither") && entity instanceof EntityWither) {
+                        isFightingBoss = true;
+                        detectedBoss = "wither";
+                        break;
+                    }
+                    // TODO: Ender Dragon
+                }
+            }
+
+            if (log) {
+                System.out.println("[Music Player Debug] Walka z bossem (" + conditions.boss_type + "): " + isFightingBoss + ". Wykryto: " + detectedBoss);
+            }
+
+            if (!isFightingBoss) {
+                return false;
+            }
+        }
 
         if (conditions.is_in_combat != null) {
             boolean isInCombat = false;

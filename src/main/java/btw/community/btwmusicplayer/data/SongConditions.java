@@ -7,4 +7,5 @@ public class SongConditions {
     public Boolean is_in_combat;
     public String weather;
     public Boolean is_in_cave;
+    public String boss_type;
 }
