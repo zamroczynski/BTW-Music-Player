@@ -1,9 +1,6 @@
 package btw.community.btwmusicplayer.mixin;
 
-import btw.community.btwmusicplayer.ModConfig;
-import btw.community.btwmusicplayer.MusicLogger;
-import btw.community.btwmusicplayer.MusicPlayerState;
-import btw.community.btwmusicplayer.MusicState;
+import btw.community.btwmusicplayer.*;
 import btw.community.btwmusicplayer.data.SongConditions;
 import btw.community.btwmusicplayer.data.SongRule;
 import btw.entity.mob.BTWSquidEntity;
@@ -32,7 +29,6 @@ import java.util.List;
 @Mixin(SoundManager.class)
 public abstract class SoundManagerMixin {
     private static MusicState musicState = MusicState.IDLE;
-    private static final List<SongRule> allSongRules = new ArrayList<>();
 
     private static List<SongRule> currentPlaylist = new ArrayList<>();
     private static int currentPlaylistIndex = 0;
@@ -51,54 +47,6 @@ public abstract class SoundManagerMixin {
     @Shadow private SoundSystem sndSystem;
     @Shadow private GameSettings options;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void onInit(ResourceManager resourceManager, GameSettings gameSettings, File assetsDir, CallbackInfo ci) {
-        File gameDir = FabricLoader.getInstance().getGameDir().toFile();
-        ModConfig.getInstance();
-        loadSoundPacks(gameDir);
-    }
-
-    private void loadSoundPacks(File gameDir) {
-        MusicLogger.log("--- [BTW Music Player] Starting to load Sound Packs... ---");
-
-        File soundPacksDir = new File(gameDir, "soundpacks");
-
-        ModConfig config = ModConfig.getInstance();
-        boolean loadAll = config.loadingMode.equalsIgnoreCase("ALL");
-
-        if (!soundPacksDir.exists() || !soundPacksDir.isDirectory()) {
-            MusicLogger.log("--- [BTW Music Player] Folder '" + soundPacksDir.getAbsolutePath() + "' does not exist or is not a folder. Loading interrupted.");
-            return;
-        }
-
-        Gson gson = new Gson();
-        Type songRuleListType = new TypeToken<ArrayList<SongRule>>(){}.getType();
-
-        for (File soundPack : soundPacksDir.listFiles()) {
-            if (soundPack.isDirectory()) {
-                if (!loadAll && !soundPack.getName().equalsIgnoreCase(config.singlePackName)) {
-                    MusicLogger.log("--- [BTW Music Player] Skip pack: " + soundPack.getName() + " (Single mode: " + config.singlePackName + ")");
-                    continue;
-                }
-                File songsJsonFile = new File(soundPack, "songs.json");
-                if (songsJsonFile.exists()) {
-                    MusicLogger.log("--- [BTW Music Player] Found sound pack: " + soundPack.getName());
-                    try (FileReader reader = new FileReader(songsJsonFile)) {
-                        List<SongRule> rules = gson.fromJson(reader, songRuleListType);
-                        for (SongRule rule : rules) {
-                            rule.soundPackPath = soundPack.getAbsolutePath();
-                        }
-                        allSongRules.addAll(rules);
-                        MusicLogger.log("--- [BTW Music Player] Load: " + rules.size() + " rules.");
-                    } catch (Exception e) {
-                        MusicLogger.error("--- [BTW Music Player] Error while loading sound pack: " + soundPack.getName());
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        MusicLogger.log("--- [BTW Music Player] Loading complete. Total number of rules: " + allSongRules.size());
-    }
 
     @Inject(method = "playRandomMusicIfReady", at = @At("HEAD"), cancellable = true)
     private void onPlayRandomMusic(CallbackInfo ci) {
@@ -196,7 +144,7 @@ public abstract class SoundManagerMixin {
 
     private List<SongRule> determineBestPlaylist(boolean log) {
         List<SongRule> potentialRules = new ArrayList<>();
-        for (SongRule rule : allSongRules) {
+        for (SongRule rule : MusicManager.getSongRules()) {
             if (checkConditions(rule.conditions, log)) {
                 potentialRules.add(rule);
             }
