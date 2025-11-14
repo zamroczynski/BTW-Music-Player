@@ -1,7 +1,12 @@
 package btw.community.btwmusicplayer;
 
 import net.fabricmc.loader.api.FabricLoader;
-import java.io.*;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public class ModConfig {
@@ -13,16 +18,18 @@ public class ModConfig {
     public String singlePackName = DEFAULT_SINGLE_PACK;
 
     private static ModConfig instance;
-    private final File configFile;
+    private final Path configFile;
 
     public boolean enableDebugLogging = true; // TODO change to false when publish addon
 
     private ModConfig() {
-        File configDir = new File(FabricLoader.getInstance().getGameDir().toFile(), "config");
-        if (!configDir.exists()) {
-            configDir.mkdirs();
+        Path configDir = FabricLoader.getInstance().getGameDir().resolve("config");
+        try {
+            Files.createDirectories(configDir);
+        } catch (IOException e) {
+            MusicLogger.error("Failed to create config directory: " + configDir);
         }
-        this.configFile = new File(configDir, "btw-music-player.cfg");
+        this.configFile = configDir.resolve("btw-music-player.cfg");
     }
 
     public static ModConfig getInstance() {
@@ -35,9 +42,9 @@ public class ModConfig {
 
     public void loadConfig() {
         Properties props = new Properties();
-        if (configFile.exists()) {
-            try (FileInputStream in = new FileInputStream(configFile)) {
-                props.load(in);
+        if (Files.exists(configFile)) {
+            try (Reader reader = Files.newBufferedReader(configFile)) {
+                props.load(reader);
                 this.loadingMode = props.getProperty("soundpack_loading_mode", DEFAULT_LOADING_MODE);
                 this.singlePackName = props.getProperty("single_soundpack_name", DEFAULT_SINGLE_PACK);
                 this.enableDebugLogging = Boolean.parseBoolean(props.getProperty("enable_debug_logging", "false"));
@@ -57,8 +64,8 @@ public class ModConfig {
         props.setProperty("single_soundpack_name", this.singlePackName);
         props.setProperty("enable_debug_logging", String.valueOf(this.enableDebugLogging));
 
-        try (FileOutputStream out = new FileOutputStream(configFile)) {
-            props.store(out, "BTW Music Player Mod Configuration");
+        try (Writer writer = Files.newBufferedWriter(configFile)) {
+            props.store(writer, "BTW Music Player Mod Configuration");
         } catch (IOException e) {
             MusicLogger.error("Configuration file write error. Error: " + e.getMessage());
         }
