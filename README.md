@@ -25,7 +25,7 @@ Players can create and install their own "sound packs" containing music files an
 
 ### Downloads
 - BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
-- Sample Sound Pack (Radogost's Mix): [Download Sound Pack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostSoundPack)
+- Sample Sound Pack (`RadogostSoundPack.zip`): [Download Sound Pack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostSoundPack)
 - Source Code: [Browse on GitHub](https://github.com/zamroczynski/BTW-Music-Player)
 
 ### Requirements
