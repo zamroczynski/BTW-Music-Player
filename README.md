@@ -24,8 +24,8 @@ Players can create and install their own "sound packs" containing music files an
 - Multi-Sound Pack Support: Load tracks from a single, specific sound pack or from all installed packs at once.
 
 ### Downloads
-- BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player)
-- Sample Sound Pack (Radogost's Mix): [Download Sound Pack](https://github.com/zamroczynski/BTW-Music-Player)
+- BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
+- Sample Sound Pack (Radogost's Mix): [Download Sound Pack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostSoundPack)
 - Source Code: [Browse on GitHub](https://github.com/zamroczynski/BTW-Music-Player)
 
 ### Requirements
@@ -207,8 +207,8 @@ Gracze mogą tworzyć i instalować własne "soundpacki" zawierające muzykę or
 - Wsparcie dla Wielu Soundpacków: Wczytuj utwory z jednego, wybranego soundpacka lub ze wszystkich zainstalowanych jednocześnie.
 
 ### Pobieranie
-- Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player)
-- Przykładowy Soundpack (`RadogostSoundPack.zip`): [Pobierz soundpack](https://github.com/zamroczynski/BTW-Music-Player)
+- Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player/releases)
+- Przykładowy Soundpack (`RadogostSoundPack.zip`): [Pobierz soundpack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostSoundPack)
 - Kod źródłowy: [Przeglądaj na GitHubie](https://github.com/zamroczynski/BTW-Music-Player)
 
 ### Wymagania
