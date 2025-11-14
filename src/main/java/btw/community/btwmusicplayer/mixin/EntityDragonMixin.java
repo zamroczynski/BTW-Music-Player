@@ -1,6 +1,6 @@
 package btw.community.btwmusicplayer.mixin;
 
-import btw.community.btwmusicplayer.MusicPlayerState;
+import btw.community.btwmusicplayer.btwmusicplayerAddon;
 import net.minecraft.src.DamageSource;
 import net.minecraft.src.EntityDragon;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class EntityDragonMixin {
     @Inject(method = "onDeathUpdate", at = @At("HEAD"))
     private void onDragonDeathUpdate(CallbackInfo ci) {
-        MusicPlayerState.reportBossDefeated("ender_dragon");
+        btwmusicplayerAddon.getMusicContext().signalBossDefeated("ender_dragon");
     }
 }

@@ -204,12 +204,12 @@ public abstract class SoundManagerMixin {
         long worldTime = mc.theWorld.getTotalWorldTime();
 
 
-        if (MusicPlayerState.consumeVictorySignalIfPresent()) {
+        if (btwmusicplayerAddon.getMusicContext().consumeVictorySignal()) {
             MusicLogger.log("[MusicPlayer LOG @ " + worldTime + "] Signal received: boss defeated.");
             victoryCooldownEndTick = worldTime + 500;
             lastCombatEventTick = -1;
 
-            MusicPlayerState.wasAttackJustTriggered();
+            btwmusicplayerAddon.getMusicContext().consumeAttackSignal();
 
             hasLoggedCooldownEnd = false;
             MusicLogger.log("[MusicPlayer LOG @ " + worldTime + "] Battle status reset. Attack flag cleared. Victory cooldown active until tick: " + victoryCooldownEndTick);
@@ -263,7 +263,7 @@ public abstract class SoundManagerMixin {
                     triggerFired = true;
                     reason = "Player Hurt by Nearby Threat";
                 }
-                if (!triggerFired && MusicPlayerState.wasAttackJustTriggered()) {
+                if (!triggerFired && btwmusicplayerAddon.getMusicContext().consumeAttackSignal()) {
                     if (log) MusicLogger.log("[Music Player Combat LOG] -> Igniter: Player Attacked (TRUE)");
                     triggerFired = true;
                     reason = "Player Initiated Attack";

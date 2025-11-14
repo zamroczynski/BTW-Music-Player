@@ -1,6 +1,6 @@
 package btw.community.btwmusicplayer.mixin;
 
-import btw.community.btwmusicplayer.MusicPlayerState;
+import btw.community.btwmusicplayer.btwmusicplayerAddon;
 import net.minecraft.src.DamageSource;
 import net.minecraft.src.EntityWither;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class EntityWitherMixin {
     @Inject(method = "dropFewItems", at = @At("HEAD"))
     private void onWitherDropsItems(boolean wasKilledByPlayer, int lootingLevel, CallbackInfo ci) {
-        MusicPlayerState.reportBossDefeated("wither");
+        btwmusicplayerAddon.getMusicContext().signalBossDefeated("wither");
     }
 }

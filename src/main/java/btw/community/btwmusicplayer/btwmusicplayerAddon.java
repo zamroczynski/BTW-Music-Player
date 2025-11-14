@@ -5,9 +5,11 @@ import btw.BTWAddon;
 
 public class btwmusicplayerAddon extends BTWAddon {
     private static btwmusicplayerAddon instance;
+    private static final MusicContext musicContext = new MusicContext();
 
     public btwmusicplayerAddon() {
         super();
+        instance = this;
     }
 
     @Override
@@ -17,5 +19,13 @@ public class btwmusicplayerAddon extends BTWAddon {
         MusicManager.load();
 
         System.out.println("Hello from BTW Music Player Addon!");
+    }
+
+    /**
+     * Provides global access to the single MusicContext instance.
+     * @return The singleton MusicContext object.
+     */
+    public static MusicContext getMusicContext() {
+        return musicContext;
     }
 }

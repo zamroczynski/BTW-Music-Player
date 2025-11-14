@@ -1,6 +1,6 @@
 package btw.community.btwmusicplayer.mixin;
 
-import btw.community.btwmusicplayer.MusicPlayerState;
+import btw.community.btwmusicplayer.btwmusicplayerAddon;
 import btw.entity.mob.BTWSquidEntity;
 import btw.entity.mob.DireWolfEntity;
 import net.minecraft.src.*;
@@ -41,7 +41,7 @@ public class PlayerControllerMPMixin {
 
         if (shouldTriggerCombat) {
             System.out.println("[Music Player Combat Trigger] Gracz zaatakował cel typu: " + targetType + ". Uruchamiam muzykę walki.");
-            MusicPlayerState.setPlayerAttackedByMob();
+            btwmusicplayerAddon.getMusicContext().signalAttack();
         }
     }
 }
