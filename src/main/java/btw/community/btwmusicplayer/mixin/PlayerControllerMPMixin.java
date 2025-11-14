@@ -1,5 +1,6 @@
 package btw.community.btwmusicplayer.mixin;
 
+import btw.community.btwmusicplayer.MusicLogger;
 import btw.community.btwmusicplayer.btwmusicplayerAddon;
 import btw.entity.mob.BTWSquidEntity;
 import btw.entity.mob.DireWolfEntity;
@@ -33,14 +34,13 @@ public class PlayerControllerMPMixin {
             shouldTriggerCombat = true;
             targetType = "Squid";
         }
-
         else if (target instanceof DireWolfEntity) {
             shouldTriggerCombat = true;
             targetType = "The Beast";
         }
 
         if (shouldTriggerCombat) {
-            System.out.println("[Music Player Combat Trigger] Gracz zaatakował cel typu: " + targetType + ". Uruchamiam muzykę walki.");
+            MusicLogger.log("[Combat Trigger] Player attacked a target of type: " + targetType + ". Triggering combat music.");
             btwmusicplayerAddon.getMusicContext().signalAttack();
         }
     }

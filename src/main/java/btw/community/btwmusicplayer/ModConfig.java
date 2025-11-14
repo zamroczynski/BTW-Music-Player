@@ -1,7 +1,6 @@
 package btw.community.btwmusicplayer;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.src.Minecraft;
 import java.io.*;
 import java.util.Properties;
 
@@ -42,13 +41,12 @@ public class ModConfig {
                 this.loadingMode = props.getProperty("soundpack_loading_mode", DEFAULT_LOADING_MODE);
                 this.singlePackName = props.getProperty("single_soundpack_name", DEFAULT_SINGLE_PACK);
                 this.enableDebugLogging = Boolean.parseBoolean(props.getProperty("enable_debug_logging", "false"));
-                System.out.println("[ModConfig] Configuration loaded. Mode: " + this.loadingMode + ", Pack: " + this.singlePackName);
+                MusicLogger.always("Configuration loaded. Mode: " + this.loadingMode + ", Pack: " + this.singlePackName);
             } catch (IOException e) {
-                MusicLogger.log("[ModConfig] Error reading configuration file, using defaults.");
-                e.printStackTrace();
+                MusicLogger.error("Error reading configuration file, using defaults. Error: " + e.getMessage());
             }
         } else {
-            System.out.println("[ModConfig] The configuration file does not exist. Creating a default one.");
+            MusicLogger.always("Configuration file does not exist. Creating a default one.");
             saveConfig();
         }
     }
@@ -62,8 +60,7 @@ public class ModConfig {
         try (FileOutputStream out = new FileOutputStream(configFile)) {
             props.store(out, "BTW Music Player Mod Configuration");
         } catch (IOException e) {
-            MusicLogger.log("[ModConfig] Configuration file write error.");
-            e.printStackTrace();
+            MusicLogger.error("Configuration file write error. Error: " + e.getMessage());
         }
     }
 }

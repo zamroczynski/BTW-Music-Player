@@ -17,7 +17,8 @@ public abstract class SoundManagerMixin {
     @Shadow private SoundSystem sndSystem;
     @Shadow private GameSettings options;
 
-    private static int debugTicks = 0;
+    private static final int DEBUG_LOG_INTERVAL_TICKS = 100; // Log every ~5 seconds
+    private static int tickCounter = 0;
 
     private CombatTracker combatTracker;
     private ConditionEvaluator conditionEvaluator;
@@ -43,8 +44,8 @@ public abstract class SoundManagerMixin {
 
         initializeComponents();
 
-        debugTicks++;
-        boolean shouldLog = debugTicks % 100 == 0;
+        tickCounter++;
+        boolean shouldLog = tickCounter % DEBUG_LOG_INTERVAL_TICKS == 0;
 
         Minecraft mc = Minecraft.getMinecraft();
 
