@@ -102,4 +102,8 @@ public class PlaybackStateMachine {
             this.musicState = newState;
         }
     }
+
+    public MusicState getState() {
+        return this.musicState;
+    }
 }

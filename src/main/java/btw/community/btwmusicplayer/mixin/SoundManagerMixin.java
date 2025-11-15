@@ -56,8 +56,8 @@ public abstract class SoundManagerMixin {
         playlistManager.update(conditionEvaluator, combatTracker, mc, shouldLog);
 
         // 3. Handle song playback logic
-        if (!this.sndSystem.playing("BgMusic") && playbackStateMachine != null && playlistManager.getCurrentSongRule() != null) {
-            MusicLogger.log("[SoundManager] Current song finished. Advancing playlist.");
+        if (playbackStateMachine != null && playbackStateMachine.getState() == MusicState.PLAYING && !this.sndSystem.playing("BgMusic")) {
+            MusicLogger.log("[SoundManager] Current song finished naturally. Advancing playlist.");
             playlistManager.advanceToNextSong();
         }
 
