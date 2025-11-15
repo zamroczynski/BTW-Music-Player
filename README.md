@@ -93,12 +93,18 @@ You can open this file with any text editor (e.g., Notepad, VS Code).
     - **Values:**
         - `false` (default) - Logging is disabled.
         - `true` - Logging is enabled.
+- `context_change_delay_seconds`
+    - **Description:** Sets a delay (in seconds) that must pass before the music changes after the game context (e.g., biome, entering a cave) is altered. This prevents annoying, rapid music switching when moving between areas. High-priority music (combat, boss battles) will always play immediately, ignoring this delay.
+    - **Values:**
+      - `7` (default) - Music will change after the new context has been stable for 7 seconds.
+      - `0` - Music changes are immediate.
 #### Example Configuration
-This is what the `btw-music-player.cfg` file would look like to load only a single sound pack named `RadogostSoundPack` with logging enabled:
+This is what the `btw-music-player.cfg` file would look like to load only a single sound pack named `RadogostSoundPack`, with a 5-second music change delay and logging enabled:
 ```
 soundpack_loading_mode=SINGLE
 single_soundpack_name=RadogostSoundPack
 enable_debug_logging=true
+context_change_delay_seconds=5
 ```
 ### Creating Your Own Sound Pack
 Anyone can create their own sound pack! The process involves preparing your music files in `.ogg` format and defining playback rules in a special file called `songs.json`.
@@ -276,12 +282,18 @@ Możesz go otworzyć za pomocą dowolnego edytora tekstu (np. Notatnik, VS Code)
   - **Wartość:**
     - `false` (domyślna) - Logi są wyłączone
     - `true` - Logi są włączone.
+- `context_change_delay_seconds`
+  - **Opis:** Ustawia opóźnienie (w sekundach), które musi upłynąć, zanim muzyka zmieni się po zmianie kontekstu w grze (np. zmiana biomu, wejście do jaskini). Zapobiega to irytującym, szybkim zmianom utworów podczas przemieszczania się między strefami. Muzyka o wysokim priorytecie (walka, walka z bossem) zawsze włączy się natychmiast, ignorując to opóźnienie.
+  - **Wartość:**
+    - `7` (domyślna) - Muzyka zmieni się, gdy nowy kontekst będzie stabilny przez 7 sekundy.
+    - `0` - Zmiany muzyki są natychmiastowe.
 #### Przykładowa konfiguracja
-Tak wygląda zawartość pliku `btw-music-player.cfg`, który ładuje tylko jeden soundpack o nazwie `RadogostSoundPack` i ma włączone logowanie:
+Tak wygląda zawartość pliku `btw-music-player.cfg`, który ładuje tylko jeden soundpack o nazwie `RadogostSoundPack`, z 5-sekundowym opóźnieniem zmiany muzyki i włączonym logowaniem:
 ```
 soundpack_loading_mode=SINGLE
 single_soundpack_name=RadogostSoundPack
 enable_debug_logging=true
+context_change_delay_seconds=5
 ```
 ### Tworzenie Własnego Soundpacka
 Każdy może stworzyć własny soundpack! Proces polega na przygotowaniu plików muzycznych w formacie `.ogg` i zdefiniowaniu zasad ich odtwarzania w specjalnym pliku `songs.json`.

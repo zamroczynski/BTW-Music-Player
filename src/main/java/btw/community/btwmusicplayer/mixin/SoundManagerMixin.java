@@ -57,8 +57,12 @@ public abstract class SoundManagerMixin {
 
         // 3. Handle song playback logic
         if (playbackStateMachine != null && playbackStateMachine.getState() == MusicState.PLAYING && !this.sndSystem.playing("BgMusic")) {
-            MusicLogger.log("[SoundManager] Current song finished naturally. Advancing playlist.");
-            playlistManager.advanceToNextSong();
+            if (playlistManager.hasPendingChange()) {
+                playlistManager.forceCommitPendingChange();
+            } else {
+                MusicLogger.log("[SoundManager] Current song finished naturally. Advancing playlist.");
+                playlistManager.advanceToNextSong();
+            }
         }
 
         SongRule targetSong = playlistManager.getCurrentSongRule();

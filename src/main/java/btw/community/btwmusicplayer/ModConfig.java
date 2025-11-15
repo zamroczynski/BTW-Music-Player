@@ -13,14 +13,16 @@ public class ModConfig {
 
     public static final String DEFAULT_LOADING_MODE = "ALL";
     public static final String DEFAULT_SINGLE_PACK = "";
+    public static final int DEFAULT_CONTEXT_DELAY = 7;
 
     public String loadingMode = DEFAULT_LOADING_MODE;
     public String singlePackName = DEFAULT_SINGLE_PACK;
+    public int contextChangeDelaySeconds = DEFAULT_CONTEXT_DELAY;
 
     private static ModConfig instance;
     private final Path configFile;
 
-    public boolean enableDebugLogging = true; // TODO change to false when publish addon
+    public boolean enableDebugLogging = true; // TODO change to false on 1.0.0 version
 
     private ModConfig() {
         Path configDir = FabricLoader.getInstance().getGameDir().resolve("config");
@@ -48,6 +50,7 @@ public class ModConfig {
                 this.loadingMode = props.getProperty("soundpack_loading_mode", DEFAULT_LOADING_MODE);
                 this.singlePackName = props.getProperty("single_soundpack_name", DEFAULT_SINGLE_PACK);
                 this.enableDebugLogging = Boolean.parseBoolean(props.getProperty("enable_debug_logging", "false"));
+                this.contextChangeDelaySeconds = Integer.parseInt(props.getProperty("context_change_delay_seconds", String.valueOf(DEFAULT_CONTEXT_DELAY)));
                 MusicLogger.always("Configuration loaded. Mode: " + this.loadingMode + ", Pack: " + this.singlePackName);
             } catch (IOException e) {
                 MusicLogger.error("Error reading configuration file, using defaults. Error: " + e.getMessage());
@@ -63,6 +66,7 @@ public class ModConfig {
         props.setProperty("soundpack_loading_mode", this.loadingMode);
         props.setProperty("single_soundpack_name", this.singlePackName);
         props.setProperty("enable_debug_logging", String.valueOf(this.enableDebugLogging));
+        props.setProperty("context_change_delay_seconds", String.valueOf(this.contextChangeDelaySeconds));
 
         try (Writer writer = Files.newBufferedWriter(configFile)) {
             props.store(writer, "BTW Music Player Mod Configuration");
