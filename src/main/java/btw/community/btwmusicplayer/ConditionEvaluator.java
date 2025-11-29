@@ -4,6 +4,7 @@ import btw.community.btwmusicplayer.data.SongConditions;
 import net.minecraft.src.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Evaluates if a song's conditions match the current state of the game.
@@ -11,25 +12,24 @@ import java.util.List;
  */
 public class ConditionEvaluator {
 
-    public boolean check(SongConditions conditions, Minecraft mc, CombatTracker combatTracker) {
+    public boolean check(SongConditions conditions, Minecraft mc, CombatTracker combatTracker, Map<String, Integer> failureStats) {
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null || player.worldObj == null) return false;
         long worldTime = mc.theWorld.getTotalWorldTime();
 
-        // 1. Victory Condition (Exclusive)
+        // 1. Victory Condition
         if (conditions.victory_after_boss != null) {
             boolean active = combatTracker.isVictoryCooldownActive(worldTime);
             if (!active) {
-                MusicLogger.trace("   -> Fail: Victory cooldown not active.");
+                recordFailure(failureStats, "Victory cooldown not active");
             }
             return active;
         }
 
         // 2. Victory Cooldown Exclusion
-        // If victory music is playing (cooldown active), suppress all other combat/boss music
         if (combatTracker.isVictoryCooldownActive(worldTime)) {
             if (conditions.is_in_combat != null || conditions.boss_type != null) {
-                MusicLogger.trace("   -> Fail: Victory cooldown is active, suppressing combat/boss music.");
+                recordFailure(failureStats, "Victory cooldown active (suppressing combat/boss)");
                 return false;
             }
         }
@@ -51,7 +51,7 @@ public class ConditionEvaluator {
                 }
             }
             if (!isFightingBoss) {
-                MusicLogger.trace("   -> Fail: Boss '" + conditions.boss_type + "' not found nearby.");
+                recordFailure(failureStats, "Boss not found: " + conditions.boss_type);
                 return false;
             }
         }
@@ -60,7 +60,7 @@ public class ConditionEvaluator {
         if (conditions.is_in_combat != null) {
             boolean actualCombatState = combatTracker.isInCombat(worldTime);
             if (conditions.is_in_combat != actualCombatState) {
-                MusicLogger.trace("   -> Fail: Combat state mismatch. Req: " + conditions.is_in_combat + ", Act: " + actualCombatState);
+                recordFailure(failureStats, "Combat state mismatch (Req: " + conditions.is_in_combat + ")");
                 return false;
             }
         }
@@ -70,7 +70,7 @@ public class ConditionEvaluator {
             int dimensionId = player.worldObj.provider.dimensionId;
             String dimensionName = (dimensionId == -1) ? "the_nether" : (dimensionId == 0) ? "overworld" : (dimensionId == 1) ? "the_end" : "unknown";
             if (!conditions.dimension.equalsIgnoreCase(dimensionName)) {
-                MusicLogger.trace("   -> Fail: Dimension mismatch. Req: " + conditions.dimension + ", Act: " + dimensionName);
+                recordFailure(failureStats, "Dimension mismatch (Req: " + conditions.dimension + ")");
                 return false;
             }
         }
@@ -82,7 +82,7 @@ public class ConditionEvaluator {
             boolean isCave = isBelowSeaLevel && !canSeeSky;
 
             if (conditions.is_in_cave != isCave) {
-                MusicLogger.trace("   -> Fail: Cave condition mismatch. Req: " + conditions.is_in_cave + ", Act: " + isCave);
+                recordFailure(failureStats, "Cave condition mismatch (Req: " + conditions.is_in_cave + ")");
                 return false;
             }
         }
@@ -91,7 +91,7 @@ public class ConditionEvaluator {
         if (conditions.weather != null) {
             String currentWeather = player.worldObj.isThundering() ? "storm" : "clear";
             if (!conditions.weather.equalsIgnoreCase(currentWeather)) {
-                MusicLogger.trace("   -> Fail: Weather mismatch. Req: " + conditions.weather + ", Act: " + currentWeather);
+                recordFailure(failureStats, "Weather mismatch (Req: " + conditions.weather + ")");
                 return false;
             }
         }
@@ -101,7 +101,7 @@ public class ConditionEvaluator {
             long time = player.worldObj.getWorldTime() % 24000;
             String timeName = (time >= 0 && time < 13000) ? "day" : "night";
             if (!conditions.time_of_day.equalsIgnoreCase(timeName)) {
-                MusicLogger.trace("   -> Fail: Time mismatch. Req: " + conditions.time_of_day + ", Act: " + timeName);
+                recordFailure(failureStats, "Time of day mismatch (Req: " + conditions.time_of_day + ")");
                 return false;
             }
         }
@@ -111,11 +111,17 @@ public class ConditionEvaluator {
             String biomeName = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
             String normalizedBiomeName = biomeName.toLowerCase().replace(' ', '_');
             if (!conditions.biome.equalsIgnoreCase(normalizedBiomeName)) {
-                MusicLogger.trace("   -> Fail: Biome mismatch. Req: " + conditions.biome + ", Act: " + normalizedBiomeName);
+                recordFailure(failureStats, "Biome mismatch (Req: " + conditions.biome + ")");
                 return false;
             }
         }
 
         return true;
+    }
+
+    private void recordFailure(Map<String, Integer> stats, String reason) {
+        if (stats != null) {
+            stats.merge(reason, 1, Integer::sum);
+        }
     }
 }

@@ -3,10 +3,7 @@ package btw.community.btwmusicplayer;
 import btw.community.btwmusicplayer.data.SongRule;
 import net.minecraft.src.Minecraft;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Manages the selection and lifecycle of music playlists.
@@ -94,15 +91,20 @@ public class PlaylistManager {
 
     private List<SongRule> findBestMatchingRules(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean trace) {
         List<SongRule> potentialRules = new ArrayList<>();
+        Map<String, Integer> failureStats = trace ? new HashMap<>() : null;
 
         if (trace) MusicLogger.trace("--- Evaluating Rules ---");
 
         for (SongRule rule : MusicManager.getSongRules()) {
-            if (trace) MusicLogger.trace("Checking: " + rule.file + " (Priority: " + rule.priority + ")");
-
-            if (evaluator.check(rule.conditions, mc, combatTracker)) {
+            if (evaluator.check(rule.conditions, mc, combatTracker, failureStats)) {
                 potentialRules.add(rule);
-                if (trace) MusicLogger.trace("   -> MATCH!");
+            }
+        }
+
+        if (trace && failureStats != null && !failureStats.isEmpty()) {
+            MusicLogger.trace("--- Skipped Songs Summary ---");
+            for (Map.Entry<String, Integer> entry : failureStats.entrySet()) {
+                MusicLogger.trace("   [" + entry.getValue() + " files] skipped due to: " + entry.getKey());
             }
         }
 
