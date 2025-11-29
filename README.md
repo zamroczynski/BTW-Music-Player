@@ -4,7 +4,7 @@
 
 BTW Music Player is a dynamic music engine created as an addon for the Better Than Wolves Community Edition 3.0.0 mod for Minecraft 1.6.4. It replaces the standard, repetitive in-game music, allowing for custom tracks to be played based on the gameplay context.
 
-Players can create and install their own "sound packs" containing music files and a `songs.json` file that defines when each track should be played. The mod features smooth transitions between songs and intelligently manages combat music, reacting to actions from both the player and monsters.
+Players can create and install their own "Music Packs" containing music files and a songs.json file that defines when each track should be played. The mod features smooth transitions between songs and intelligently manages combat music, reacting to actions from both the player and monsters.
 
 ### Features
 
@@ -21,11 +21,11 @@ Players can create and install their own "sound packs" containing music files an
   - Combat: Dedicated music for encounters with monsters, wolves, or squids.
   - Boss Battles: Unique tracks for fights against the Ender Dragon and the Wither.
   - Victory: A special theme plays after defeating a boss.
-- Multi-Sound Pack Support: Load tracks from a single, specific sound pack or from all installed packs at once.
+- Multi-Music Pack Support: Load tracks from a single, specific music pack or from all installed packs at once.
 
 ### Downloads
 - BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
-- Sample Sound Pack (`RadogostSoundPack.zip`): [Download Sound Pack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostSoundPack)
+- Sample Music Pack (`RadogostMusicPack.zip`): [Download Music Pack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostMusicPack)
 - Source Code: [Browse on GitHub](https://github.com/zamroczynski/BTW-Music-Player)
 
 ### Requirements
@@ -38,32 +38,33 @@ Players can create and install their own "sound packs" containing music files an
 4. Move the downloaded `btw-music-player-x.y.z.jar` file into the `mods` folder.
 5. Launch the game.
 
-### Sound Pack Installation
-After successfully installing the mod, you can add any number of sound packs to customize the in-game music.
-1. Download a sound pack (e.g., RadogostSoundPack.zip) from the Downloads section.
+### Music Pack Installation
+After successfully installing the mod, you can add any number of music packs to customize the in-game music.
+1. Download a music pack (e.g., RadogostMusicPack.zip) from the Downloads section.
 2. Navigate to your main Minecraft game directory (`.minecraft`).
-3. In the `.minecraft` directory, find a folder named `soundpacks`. **If it does not exist, you must create it**.
-4. Unzip the downloaded `.zip` archive. Inside, you will find a folder with the sound pack's name (e.g., `RadogostSoundPack`).
-5. **Important**: Move the **entire folder** (e.g., `RadogostSoundPack`) into the `soundpacks` directory. Do not copy individual `.ogg` files or the `songs.json` file directly.
+3. In the `.minecraft` directory, find a folder named `musicpacks`. **If it does not exist, you must create it**.
+4. Unzip the downloaded `.zip` archive. Inside, you will find a folder with the music pack's name (e.g., `RadogostMusicPack`).
+5. **Important**: Move the **entire folder** (e.g., `RadogostMusicPack`) into the `musicpacks` directory. Do not copy individual `.ogg` files or the `songs.json` file directly.
 
-After restarting the game, the sound packs will be loaded automatically according to the settings in the configuration file.
+After restarting the game, the music packs will be loaded automatically according to the settings in the configuration file.
 
 #### Example Folder Structure
-This is what your file structure should look like after installing the mod and two example sound packs (`RadogostSoundPack` and `AnotherCoolSoundPack`):
+This is what your file structure should look like after installing the mod and two example music packs (`RadogostMusicPack` and `AnotherCoolMusicPack`):
 ```
 .minecraft/
 ├── mods/
+│   ├── btw-fabric-3.0.0-beta-snapshot-7.jar
 │   └── btw-music-player-x.y.z.jar
 │
-├── soundpacks/
-│   ├── RadogostSoundPack/
+├── musicpacks/
+│   ├── RadogostMusicPack/
 │   │   ├── songs.json
 │   │   ├── day/
 │   │   │   └── kam_01_spirit.ogg
 │   │   └── combat/
 │   │       └── witcher_52_monster_battle.ogg
 │   │
-│   └── AnotherCoolSoundPack/
+│   └── AnotherCoolMusicPack/
 │       ├── songs.json
 │       └── ... (music files)
 │
@@ -78,18 +79,18 @@ The configuration file is created automatically the first time you run the game 
 You can open this file with any text editor (e.g., Notepad, VS Code).
 
 #### Available Options
-- `soundpack_loading_mode`
-    - **Description:** Determines how the mod should load sound packs.
+- `musicpack_loading_mode`
+    - **Description:** Determines how the mod should load music packs.
     - **Values:**
-        - `ALL` (default) - The mod loads music from all sound packs found in the `soundpacks` folder.
-        - `SINGLE` - The mod loads music from only one specific sound pack.
-    - **Example:** To use only one sound pack, change this value to SINGLE.
-- `single_soundpack_name`
-    - **Description:** The name of the sound pack to be activated when `soundpack_loading_mode` is set to `SINGLE`.
-    - **Values:** The exact name of the sound pack folder (e.g., `RadogostSoundPack`). This is case-sensitive.
-    - **Example:** `single_soundpack_name=RadogostSoundPack`
+        - `ALL` (default) - The mod loads music from all music packs found in the `musicpacks` folder.
+        - `SINGLE` - The mod loads music from only one specific music pack.
+    - **Example:** To use only one music pack, change this value to SINGLE.
+- `single_musicpack_name`
+    - **Description:** The name of the music pack to be activated when `musicpack_loading_mode` is set to `SINGLE`.
+    - **Values:** The exact name of the music pack folder (e.g., `RadogostMusicPack`). This is case-sensitive.
+    - **Example:** `single_musicpack_name=RadogostMusicPack`
 - `enable_debug_logging`
-    - **Description:** Enables or disables detailed mod messages in the game console. This is useful for diagnosing issues or when creating your own sound pack.
+    - **Description:** Enables or disables detailed mod messages in the game console. This is useful for diagnosing issues or when creating your own music pack.
     - **Values:**
         - `false` (default) - Logging is disabled.
         - `true` - Logging is enabled.
@@ -99,27 +100,27 @@ You can open this file with any text editor (e.g., Notepad, VS Code).
       - `7` (default) - Music will change after the new context has been stable for 7 seconds.
       - `0` - Music changes are immediate.
 #### Example Configuration
-This is what the `btw-music-player.cfg` file would look like to load only a single sound pack named `RadogostSoundPack`, with a 5-second music change delay and logging enabled:
+This is what the `btw-music-player.cfg` file would look like to load only a single music pack named `RadogostMusicPack`, with a 5-second music change delay and logging enabled:
 ```
-soundpack_loading_mode=SINGLE
-single_soundpack_name=RadogostSoundPack
+musicpack_loading_mode=SINGLE
+single_musicpack_name=RadogostMusicPack
 enable_debug_logging=true
 context_change_delay_seconds=5
 ```
-### Creating Your Own Sound Pack
-Anyone can create their own sound pack! The process involves preparing your music files in `.ogg` format and defining playback rules in a special file called `songs.json`.
+### Creating Your Own Music Pack
+Anyone can create their own music pack! The process involves preparing your music files in `.ogg` format and defining playback rules in a special file called `songs.json`.
 
 #### 0. Important Tip: Volume Normalization
 Before you begin, **we strongly recommend normalizing the volume** for all your tracks. This will prevent situations where one track is too quiet and the next is too loud, forcing you to constantly adjust the in-game music slider.
 
-You can do this using a free program like **Audacity**. For my sound pack, I used the "Normalize" effect to a perceived loudness of **-22 LUFS**. This step ensures a professional and consistent listening experience.
+You can do this using a free program like **Audacity**. For my music pack, I used the "Normalize" effect to a perceived loudness of **-22 LUFS**. This step ensures a professional and consistent listening experience.
 
 #### 1. Folder Structure
-First, create a main folder for your sound pack, e.g., `MyFirstSoundPack`. Inside it, you must place the `songs.json` file. You can place your music files alongside it or, for better organization, group them into subfolders (e.g., `music`, `combat`, `boss`).
+First, create a main folder for your music pack, e.g., `MyFirstMusicPack`. Inside it, you must place the `songs.json` file. You can place your music files alongside it or, for better organization, group them into subfolders (e.g., `music`, `combat`, `boss`).
 
 ```
-soundpacks/
-  └── MyFirstSoundPack/
+musicpacks/
+  └── MyFirstMusicPack/
       ├── songs.json
       ├── ambient/
       │   ├── day_forest.ogg
@@ -129,7 +130,7 @@ soundpacks/
 ```
 
 #### 2. The `songs.json` File
-This is the heart of your sound pack. It's a text file containing a list of "rules" that tell the mod when to play a specific track. Each rule consists of three parts:
+This is the heart of your music pack. It's a text file containing a list of "rules" that tell the mod when to play a specific track. Each rule consists of three parts:
 
 - `file`: The path to the music file.
 - `priority`: A number that determines how important the track is.
@@ -169,7 +170,7 @@ The following table lists all the conditions you can use in the `conditions` sec
 | Condition Key     | Accepted Values                          | Description                                                                       |
 | ------------------ |-------------------------------------------------| ----------------------------------------------------------------------------- |
 | dimension          | "overworld", "the_nether", "the_end"            | Specifies the dimension the player must be in.                           |
-| biome              | "forest", "plains", "desert", "ice_plains" itp. | Specifies the biome. Use lowercase letters and replace spaces with `_`.      |
+| biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, river, hell, sky, frozenocean, frozenriver, ice_plains, ice_mountains, mushroomisland, mushroomislandshore, beach, deserthills, foresthills, taigahills, extreme_hills_edge, jungle, junglehills | Specifies the biome. Use lowercase letters and replace spaces with `_`.      |
 | time_of_day        | "day", "night"                                  | Specifies the current time of day in the game.                                       |
 | weather            | "clear", "storm"                                | Checks if the weather is calm or if there is a storm.                          |
 | is_in_cave         | true, false                                     | Checks if the player is underground with no view of the sky.                      |
@@ -181,8 +182,8 @@ The following table lists all the conditions you can use in the `conditions` sec
 
 - File Format: Ensure all your music files are in the .ogg format.
 - Use Logs: In the config file, `enable enable_debug_logging=true`. The game console will show what the mod is trying to do, which makes it easier to find errors.
-- JSON Validator: If the game isn't loading your sound pack, make sure your songs.json file is free of syntax errors. You can check it by pasting its content into an online JSON validator.
-- Managing Large Sound Packs (CSV to JSON):
+- JSON Validator: If the game isn't loading your music pack, make sure your songs.json file is free of syntax errors. You can check it by pasting its content into an online JSON validator.
+- Managing Large Music Packs (CSV to JSON):
 If you plan to add dozens or hundreds of tracks, editing the `songs.json` file by hand becomes tedious. In this case, you can prepare a simple spreadsheet with columns in the following order:
 `file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss`
 
@@ -194,7 +195,7 @@ Save the spreadsheet as a `.csv` file, and then use my helper tool, which will a
 
 BTW Music Player to dynamiczny silnik muzyczny stworzony jako addon do modyfikacji Better Than Wolves Community Edition 3.0.0 dla Minecraft 1.6.4. Zastępuje on standardową, powtarzalną muzykę w grze, pozwalając na odtwarzanie własnych utworów w zależności od kontekstu rozgrywki.
 
-Gracze mogą tworzyć i instalować własne "soundpacki" zawierające muzykę oraz plik `songs.json`, który definiuje, kiedy dany utwór ma być odtwarzany. Mod pozwala na płynne przejścia między piosenkami i inteligentnie zarządza muzyką walki, reagując na działania gracza i potworów.
+Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę oraz plik `songs.json`, który definiuje, kiedy dany utwór ma być odtwarzany. Mod pozwala na płynne przejścia między piosenkami i inteligentnie zarządza muzyką walki, reagując na działania gracza i potworów.
 
 ### Funkcjonalności
 - Pełna Personalizacja Muzyki: Zastąp całą ścieżkę dźwiękową gry własnymi plikami `.ogg`.
@@ -210,11 +211,11 @@ Gracze mogą tworzyć i instalować własne "soundpacki" zawierające muzykę or
   - Walka: Dedykowana muzyka podczas starć z potworami, wilkami czy kałamarnicami.
   - Walki z Bossami: Unikalne utwory podczas walki z Ender Dragonem i Witherem.
   - Zwycięstwo: Specjalna muzyka odtwarzana po pokonaniu bossa.
-- Wsparcie dla Wielu Soundpacków: Wczytuj utwory z jednego, wybranego soundpacka lub ze wszystkich zainstalowanych jednocześnie.
+- Wsparcie dla Wielu Musicpacków: Wczytuj utwory z jednego, wybranego musicpacka lub ze wszystkich zainstalowanych jednocześnie.
 
 ### Pobieranie
 - Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player/releases)
-- Przykładowy Soundpack (`RadogostSoundPack.zip`): [Pobierz soundpack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostSoundPack)
+- Przykładowy Musicpack (`RadogostMusicPack.zip`): [Pobierz musicpack](https://github.com/zamroczynski/BTW-Music-Player/releases/tag/RadogostMusicPack)
 - Kod źródłowy: [Przeglądaj na GitHubie](https://github.com/zamroczynski/BTW-Music-Player)
 
 ### Wymagania
@@ -227,33 +228,34 @@ Gracze mogą tworzyć i instalować własne "soundpacki" zawierające muzykę or
 4. Przenieś pobrany plik `btw-music-player-x.y.z.jar` do folderu `mods`.
 5. Uruchom grę.
 
-### Instalacja Soundpacków
-Po pomyślnym zainstalowaniu modyfikacji możesz dodać dowolną liczbę soundpacków, aby spersonalizować muzykę w grze
+### Instalacja Musicpacków
+Po pomyślnym zainstalowaniu modyfikacji możesz dodać dowolną liczbę musicpacków, aby spersonalizować muzykę w grze
 
-1. Pobierz wybrany soundpack (np. RadogostSoundPack.zip) z sekcji Pobieranie.
+1. Pobierz wybrany musicpack (np. RadogostMusicPack.zip) z sekcji Pobieranie.
 2. Przejdź do głównego folderu gry Minecraft (`.minecraft`).
-3. W folderze `.minecraft` znajdź katalog o nazwie `soundpacks`. **Jeśli nie istnieje, musisz go utworzyć**.
-4. Wypakuj pobrane archiwum `.zip`. W środku znajdziesz folder z właściwą nazwą soundpacka (np. `RadogostSoundPack`).
-5. **Ważne**: Przenieś **cały folder** (np. `RadogostSoundPack`) do katalogu `soundpacks`. Nie kopiuj pojedynczych plików `.ogg` ani pliku `songs.json` luzem.
+3. W folderze `.minecraft` znajdź katalog o nazwie `musicpacks`. **Jeśli nie istnieje, musisz go utworzyć**.
+4. Wypakuj pobrane archiwum `.zip`. W środku znajdziesz folder z właściwą nazwą musicpacka (np. `RadogostMusicPack`).
+5. **Ważne**: Przenieś **cały folder** (np. `RadogostMusicPack`) do katalogu `musicpacks`. Nie kopiuj pojedynczych plików `.ogg` ani pliku `songs.json` luzem.
 
-Po ponownym uruchomieniu gry, soundpacki zostaną automatycznie wczytane zgodnie z ustawieniami w pliku konfiguracyjnym.
+Po ponownym uruchomieniu gry, musicpacki zostaną automatycznie wczytane zgodnie z ustawieniami w pliku konfiguracyjnym.
 
 ### Przykładowa struktura folderów
-Tak powinna wyglądać Twoja struktura plików po zainstalowaniu modyfikacji i dwóch przykładowych soundpacków (`RadogostSoundPack` oraz `InnySuperSoundpack`):
+Tak powinna wyglądać Twoja struktura plików po zainstalowaniu modyfikacji i dwóch przykładowych musicpacków (`RadogostMusicPack` oraz `InnySuperMusicpack`):
 ```
 .minecraft/
   ├── mods/
+  │   ├── btw-fabric-3.0.0-beta-snapshot-7.jar
   │   └── btw-music-player-x.y.z.jar
   │
-  ├── soundpacks/
-  │   ├── RadogostSoundPack/
+  ├── musicpacks/
+  │   ├── RadogostMusicPack/
   │   │   ├── songs.json
   │   │   ├── day/
   │   │   │   └── kam_01_spirit.ogg
   │   │   └── combat/
   │   │       └── witcher_52_monster_battle.ogg
   │   │
-  │   └── InnySuperSoundpack/
+  │   └── InnySuperMusicpack/
   │       ├── songs.json
   │       └── ... (pliki muzyczne)
   │
@@ -267,18 +269,18 @@ Plik konfiguracyjny jest tworzony automatycznie podczas pierwszego uruchomienia 
 Możesz go otworzyć za pomocą dowolnego edytora tekstu (np. Notatnik, VS Code).
 
 #### Dostępne Opcje
-- `soundpack_loading_mode`
-  - **Opis:** Określa, w jaki sposób modyfikacja ma ładować soundpacki.
+- `musicpack_loading_mode`
+  - **Opis:** Określa, w jaki sposób modyfikacja ma ładować musicpacki.
   - **Wartości:**
-    - `ALL` (domyślna) - Modyfikacja ładuje muzykę ze wszystkich soundpacków znalezionych w folderze soundpacks.
-    - `SINGLE` - Modyfikacja ładuje muzykę tylko z jednego, wybranego soundpacka.
-  - Przykład: Aby używać tylko jednego soundpacka, zmień tę wartość na SINGLE.
-- `single_soundpack_name`
-  - **Opis:** Nazwa soundpacka, który ma być aktywny, gdy `soundpack_loading_mode` jest ustawiony на `SINGLE`.
-  - **Wartość:** Dokładna nazwa folderu z soundpackiem (np. `RadogostSoundPack`). Wielkość liter ma znaczenie.
-  - **Przykład:** `single_soundpack_name=RadogostSoundPack`
+    - `ALL` (domyślna) - Modyfikacja ładuje muzykę ze wszystkich musicpacków znalezionych w folderze musicpacks.
+    - `SINGLE` - Modyfikacja ładuje muzykę tylko z jednego, wybranego musicpacka.
+  - Przykład: Aby używać tylko jednego musicpacka, zmień tę wartość na SINGLE.
+- `single_musicpack_name`
+  - **Opis:** Nazwa musicpacka, który ma być aktywny, gdy `musicpack_loading_mode` jest ustawiony на `SINGLE`.
+  - **Wartość:** Dokładna nazwa folderu z musicpackiem (np. `RadogostMusicPack`). Wielkość liter ma znaczenie.
+  - **Przykład:** `single_musicpack_name=RadogostMusicPack`
 - `enable_debug_logging`
-  - **Opis:** Włącza lub wyłącza szczegółowe komunikaty modyfikacji w konsoli gry. Jest to przydatne do diagnozowania problemów lub podczas tworzenia własnego soundpacka.
+  - **Opis:** Włącza lub wyłącza szczegółowe komunikaty modyfikacji w konsoli gry. Jest to przydatne do diagnozowania problemów lub podczas tworzenia własnego musicpacka.
   - **Wartość:**
     - `false` (domyślna) - Logi są wyłączone
     - `true` - Logi są włączone.
@@ -288,26 +290,26 @@ Możesz go otworzyć za pomocą dowolnego edytora tekstu (np. Notatnik, VS Code)
     - `7` (domyślna) - Muzyka zmieni się, gdy nowy kontekst będzie stabilny przez 7 sekundy.
     - `0` - Zmiany muzyki są natychmiastowe.
 #### Przykładowa konfiguracja
-Tak wygląda zawartość pliku `btw-music-player.cfg`, który ładuje tylko jeden soundpack o nazwie `RadogostSoundPack`, z 5-sekundowym opóźnieniem zmiany muzyki i włączonym logowaniem:
+Tak wygląda zawartość pliku `btw-music-player.cfg`, który ładuje tylko jeden musicpack o nazwie `RadogostMusicPack`, z 5-sekundowym opóźnieniem zmiany muzyki i włączonym logowaniem:
 ```
-soundpack_loading_mode=SINGLE
-single_soundpack_name=RadogostSoundPack
+musicpack_loading_mode=SINGLE
+single_musicpack_name=RadogostmusicPack
 enable_debug_logging=true
 context_change_delay_seconds=5
 ```
-### Tworzenie Własnego Soundpacka
-Każdy może stworzyć własny soundpack! Proces polega na przygotowaniu plików muzycznych w formacie `.ogg` i zdefiniowaniu zasad ich odtwarzania w specjalnym pliku `songs.json`.
+### Tworzenie Własnego Musicpacka
+Każdy może stworzyć własny musicpack! Proces polega na przygotowaniu plików muzycznych w formacie `.ogg` i zdefiniowaniu zasad ich odtwarzania w specjalnym pliku `songs.json`.
 
 #### 0. Ważna Wskazówka: Normalizacja Głośności
 Zanim zaczniesz, **zdecydowanie zalecamy wykonanie normalizacji głośności** dla wszystkich utworów. Zapobiegnie to sytuacji, w której jeden utwór jest za cichy, a następny za głośny, co zmuszałoby do ciągłego regulowania suwaka muzyki w grze.
 
-Możesz to zrobić w darmowym programie **Audacity**. W moim soundpacku użyłem opcji "Normalizuj głośność" do postrzeganej głośności **-22 LUFS**. Ten krok gwarantuje profesjonalne i spójne wrażenia odsłuchowe.
+Możesz to zrobić w darmowym programie **Audacity**. W moim musicpacku użyłem opcji "Normalizuj głośność" do postrzeganej głośności **-22 LUFS**. Ten krok gwarantuje profesjonalne i spójne wrażenia odsłuchowe.
 
 #### 1. Struktura folderów
-Na początek stwórz główny folder dla swojego soundpacka, np. `MojPierwszySoundpack`. Wewnątrz niego musi znaleźć się plik `songs.json`. Pliki muzyczne możesz umieścić obok niego lub dla porządku pogrupować je w podfolderach (np. `music`, `combat`, `boss`).
+Na początek stwórz główny folder dla swojego musicpacka, np. `MojPierwszyMusicpack`. Wewnątrz niego musi znaleźć się plik `songs.json`. Pliki muzyczne możesz umieścić obok niego lub dla porządku pogrupować je w podfolderach (np. `music`, `combat`, `boss`).
 ```
-soundpacks/
-  └── MojPierwszySoundpack/
+musicpacks/
+  └── MojPierwszyMusicpack/
       ├── songs.json
       ├── ambient/
       │   ├── day_forest.ogg
@@ -316,7 +318,7 @@ soundpacks/
           └── regular_fight.ogg
 ```
 #### 2. Plik `songs.json`
-To serce Twojego soundpacka. Jest to plik tekstowy zawierający listę "reguł" (rules), które mówią modyfikacji, kiedy odtwarzać dany utwór. Każda reguła składa się z trzech części:
+To serce Twojego musicpacka. Jest to plik tekstowy zawierający listę "reguł" (rules), które mówią modyfikacji, kiedy odtwarzać dany utwór. Każda reguła składa się z trzech części:
 - `file`: Ścieżka do pliku muzycznego.
 - `priority`: Liczba określająca, jak ważny jest dany utwór.
 - `conditions`: Zestaw warunków, które muszą zostać spełnione, aby utwór mógł być odtworzony.
@@ -351,7 +353,7 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 | Klucz warunku      | Akceptowane wartości                            | Opis                                                                          |
 | ------------------ |-------------------------------------------------|-------------------------------------------------------------------------------|
 | dimension          | "overworld", "the_nether", "the_end"            | Określa wymiar, w którym musi znajdować się gracz.                            |
-| biome              | "forest", "plains", "desert", "ice_plains" itp. | Określa biom. Nazwę biomu pisz małymi literami, a spacje zamieniaj na `_`.      |
+| biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, river, hell, sky, frozenocean, frozenriver, ice_plains, ice_mountains, mushroomisland, mushroomislandshore, beach, deserthills, foresthills, taigahills, extreme_hills_edge, jungle, junglehills | Określa biom. Nazwę biomu pisz małymi literami, a spacje zamieniaj na `_`.      |
 | time_of_day        | "day", "night"                                  | Określa aktualną porę dnia w grze.                                            |
 | weather            | "clear", "storm"                                | Sprawdza, czy pogoda jest spokojna, czy jest burza.                           |
 | is_in_cave         | true, false                                     | Sprawdza, czy gracz jest pod ziemią i nie widzi nieba.                        |
@@ -363,8 +365,8 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 - **Format plików:** Upewnij się, że wszystkie Twoje pliki muzyczne są w formacie `.ogg`.
 - **Użyj logów:** W pliku konfiguracyjnym włącz `enable_debug_logging=true`. W konsoli gry zobaczysz, co modyfikacja próbuje zrobić, co ułatwi znajdowanie błędów.
 
-- **Walidator JSON:** Jeśli gra nie wczytuje Twojego soundpacka, upewnij się, że plik `songs.json` nie ma błędów składni. Możesz go sprawdzić wklejając jego treść do internetowego walidatora JSON.
-- **Zarządzanie Dużymi Soundpackami (CSV to JSON):**  
+- **Walidator JSON:** Jeśli gra nie wczytuje Twojego musicpacka, upewnij się, że plik `songs.json` nie ma błędów składni. Możesz go sprawdzić wklejając jego treść do internetowego walidatora JSON.
+- **Zarządzanie Dużymi Musicpackami (CSV to JSON):**  
   Jeśli planujesz dodać dziesiątki lub setki utworów, ręczne edytowanie pliku `songs.json`staje się niewygodne. W takim przypadku możesz przygotować prosty arkusz kalkulacyjny z kolumnami w następującej kolejności:  
   `file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss`
   Zapisz arkusz jako plik `.csv`, a następnie użyj mojego pomocniczego narzędzia, które automatycznie zamieni go na gotowy do użycia plik `songs.json`.
