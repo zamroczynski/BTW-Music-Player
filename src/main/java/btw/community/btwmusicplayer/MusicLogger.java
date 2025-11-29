@@ -13,6 +13,13 @@ public class MusicLogger {
         AddonHandler.logMessage(LOG_PREFIX + message);
     }
 
+    public static void trace(String message) {
+        if (!ModConfig.getInstance().enableDebugLogging) {
+            return;
+        }
+        AddonHandler.logMessage(LOG_PREFIX + "[TRACE] " + message);
+    }
+
     public static void error(String message) {
         AddonHandler.logMessage(LOG_PREFIX + "[ERROR] " + message);
     }

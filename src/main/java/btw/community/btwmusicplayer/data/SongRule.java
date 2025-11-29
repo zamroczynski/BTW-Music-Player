@@ -5,5 +5,5 @@ public class SongRule {
     public int priority;
     public SongConditions conditions;
 
-    public transient String soundPackPath;
+    public transient String musicPackPath;
 }

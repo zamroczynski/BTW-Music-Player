@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class MusicManager {
+    public static final String ROOT_DIR_NAME = "musicpacks";
+    public static final String CONFIG_FILENAME = "songs.json";
     private static final Gson GSON = new Gson();
     private static final List<SongRule> allSongRules = new ArrayList<>();
     private static boolean isLoaded = false;
@@ -23,53 +25,72 @@ public class MusicManager {
      * Main loading method, called once at addon startup.
      */
     public static void load() {
-        if (isLoaded) return; // Prevent double loading
+        if (isLoaded) return;
 
-        ModConfig.getInstance(); // Ensure config is loaded
+        ModConfig config = ModConfig.getInstance();
         Path gameDir = FabricLoader.getInstance().getGameDir();
 
-        MusicLogger.always("--- Starting to load Sound Packs... ---");
-        MusicLogger.always("Using game directory: " + gameDir.toAbsolutePath());
+        MusicLogger.always("--- Starting to load Music Packs... ---");
+        MusicLogger.trace("Using game directory: " + gameDir.toAbsolutePath());
 
-        Path soundPacksDir = gameDir.resolve("soundpacks");
+        Path musicPacksDir = gameDir.resolve(ROOT_DIR_NAME);
 
-        if (!Files.isDirectory(soundPacksDir)) {
-            MusicLogger.always("Folder '" + soundPacksDir.toAbsolutePath() + "' does not exist. Loading aborted.");
+        if (!Files.isDirectory(musicPacksDir)) {
+            MusicLogger.always("Folder '" + musicPacksDir.toAbsolutePath() + "' does not exist. Creating it...");
+            try {
+                Files.createDirectories(musicPacksDir);
+                MusicLogger.always("Created empty musicpacks folder. Please add music packs.");
+            } catch (IOException e) {
+                MusicLogger.error("Failed to create musicpacks folder!");
+                e.printStackTrace();
+            }
             return;
         }
 
-        ModConfig config = ModConfig.getInstance();
         boolean loadAll = config.loadingMode.equalsIgnoreCase("ALL");
+        String targetPack = config.singleMusicPackName;
+
+        MusicLogger.trace("Loading Mode: " + config.loadingMode + (loadAll ? "" : " (Target: " + targetPack + ")"));
+
         Type songRuleListType = new TypeToken<ArrayList<SongRule>>(){}.getType();
 
-        try (Stream<Path> soundPackPaths = Files.list(soundPacksDir)) {
-            soundPackPaths
-                    .filter(Files::isDirectory)
-                    .forEach(soundPackPath -> {
-                        String soundPackName = soundPackPath.getFileName().toString();
-                        if (!loadAll && !soundPackName.equalsIgnoreCase(config.singlePackName)) {
-                            MusicLogger.log("Skipping pack: " + soundPackName + " (Single mode active for: " + config.singlePackName + ")");
-                            return;
+        try (Stream<Path> paths = Files.list(musicPacksDir)) {
+            paths.filter(Files::isDirectory).forEach(musicPackPath -> {
+                String packName = musicPackPath.getFileName().toString();
+                MusicLogger.trace("Found directory: " + packName);
+
+                if (!loadAll && !packName.equalsIgnoreCase(targetPack)) {
+                    MusicLogger.trace(" -> Skipping (Mode is SINGLE and this is not '" + targetPack + "')");
+                    return;
+                }
+
+                Path songsJsonFile = musicPackPath.resolve(CONFIG_FILENAME);
+
+                if (Files.exists(songsJsonFile)) {
+                    MusicLogger.always("Processing Music Pack: " + packName);
+                    try (Reader reader = Files.newBufferedReader(songsJsonFile)) {
+                        List<SongRule> rules = GSON.fromJson(reader, songRuleListType);
+
+                        if (rules != null && !rules.isEmpty()) {
+                            for (SongRule rule : rules) {
+                                rule.musicPackPath = musicPackPath.toAbsolutePath().toString();
+                            }
+                            allSongRules.addAll(rules);
+                            MusicLogger.log(" -> Loaded " + rules.size() + " rules from " + packName);
+                        } else {
+                            MusicLogger.error(" -> " + CONFIG_FILENAME + " is empty or invalid in " + packName);
                         }
 
-                        Path songsJsonFile = soundPackPath.resolve("songs.json");
-                        if (Files.exists(songsJsonFile)) {
-                            MusicLogger.always("Found sound pack: " + soundPackName);
-                            try (Reader reader = Files.newBufferedReader(songsJsonFile)) {
-                                List<SongRule> rules = GSON.fromJson(reader, songRuleListType);
-                                for (SongRule rule : rules) {
-                                    rule.soundPackPath = soundPackPath.toAbsolutePath().toString();
-                                }
-                                allSongRules.addAll(rules);
-                                MusicLogger.always("Loaded " + rules.size() + " rules.");
-                            } catch (Exception e) {
-                                MusicLogger.error("Error loading sound pack: " + soundPackName);
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+                    } catch (Exception e) {
+                        MusicLogger.error(" -> Error parsing " + CONFIG_FILENAME + " in " + packName);
+                        e.printStackTrace();
+                    }
+                } else {
+                    MusicLogger.error(" -> No " + CONFIG_FILENAME + " found in " + packName + ". Skipping.");
+                }
+            });
         } catch (IOException e) {
-            MusicLogger.error("Could not read contents of the soundpacks folder.");
+            MusicLogger.error("Could not access " + ROOT_DIR_NAME + " directory.");
             e.printStackTrace();
         }
 

@@ -3,13 +3,13 @@
   "id": "btw-music-player",
   "version": "${version}",
   "name": "BTW Music Player",
-  "description": "A dynamic music engine for Better Than Wolves CE. Create custom sound packs where music plays contextually based on dimension, biome, time of day, combat, boss battles, and more. Features smooth transitions and an intelligent combat music system.",
+  "description": "A dynamic music engine for Better Than Wolves CE. Create custom Music Packs where music plays contextually based on dimension, biome, time of day, combat, boss battles, and more. Features smooth transitions and an intelligent combat music system.",
   "authors": [
     "Bard Radogost"
   ],
   "contact": {
-    "homepage": "https://legacyfabric.net/",
-    "sources": "https://github.com/Legacy-Fabric/fabric-example-mod"
+    "homepage": "https://github.com/zamroczynski/BTW-Music-Player",
+    "sources": "https://github.com/zamroczynski/BTW-Music-Player"
   },
   "license": "CC0-1.0",
   "icon": "assets/btw-music-player/icon.png",

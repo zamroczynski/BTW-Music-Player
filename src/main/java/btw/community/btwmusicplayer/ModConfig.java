@@ -16,7 +16,7 @@ public class ModConfig {
     public static final int DEFAULT_CONTEXT_DELAY = 7;
 
     public String loadingMode = DEFAULT_LOADING_MODE;
-    public String singlePackName = DEFAULT_SINGLE_PACK;
+    public String singleMusicPackName = DEFAULT_SINGLE_PACK;
     public int contextChangeDelaySeconds = DEFAULT_CONTEXT_DELAY;
 
     private static ModConfig instance;
@@ -47,11 +47,11 @@ public class ModConfig {
         if (Files.exists(configFile)) {
             try (Reader reader = Files.newBufferedReader(configFile)) {
                 props.load(reader);
-                this.loadingMode = props.getProperty("soundpack_loading_mode", DEFAULT_LOADING_MODE);
-                this.singlePackName = props.getProperty("single_soundpack_name", DEFAULT_SINGLE_PACK);
+                this.loadingMode = props.getProperty("musicpack_loading_mode", DEFAULT_LOADING_MODE);
+                this.singleMusicPackName = props.getProperty("single_musicpack_name", DEFAULT_SINGLE_PACK);
                 this.enableDebugLogging = Boolean.parseBoolean(props.getProperty("enable_debug_logging", "false"));
                 this.contextChangeDelaySeconds = Integer.parseInt(props.getProperty("context_change_delay_seconds", String.valueOf(DEFAULT_CONTEXT_DELAY)));
-                MusicLogger.always("Configuration loaded. Mode: " + this.loadingMode + ", Pack: " + this.singlePackName);
+                MusicLogger.always("Configuration loaded. Mode: " + this.loadingMode + ", Music Pack: " + this.singleMusicPackName);
             } catch (IOException e) {
                 MusicLogger.error("Error reading configuration file, using defaults. Error: " + e.getMessage());
             }
@@ -63,11 +63,10 @@ public class ModConfig {
 
     public void saveConfig() {
         Properties props = new Properties();
-        props.setProperty("soundpack_loading_mode", this.loadingMode);
-        props.setProperty("single_soundpack_name", this.singlePackName);
+        props.setProperty("musicpack_loading_mode", this.loadingMode);
+        props.setProperty("single_musicpack_name", this.singleMusicPackName);
         props.setProperty("enable_debug_logging", String.valueOf(this.enableDebugLogging));
         props.setProperty("context_change_delay_seconds", String.valueOf(this.contextChangeDelaySeconds));
-
         try (Writer writer = Files.newBufferedWriter(configFile)) {
             props.store(writer, "BTW Music Player Mod Configuration");
         } catch (IOException e) {

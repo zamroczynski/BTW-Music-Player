@@ -79,7 +79,7 @@ public class PlaybackStateMachine {
 
     public void playNewSong(SongRule rule, float initialVolume) {
         try {
-            File songFile = new File(rule.soundPackPath, rule.file);
+            File songFile = new File(rule.musicPackPath, rule.file);
             if (songFile.exists()) {
                 this.currentSongPath = rule.file;
                 URL songUrl = songFile.toURI().toURL();

@@ -10,7 +10,6 @@ import java.util.List;
 
 /**
  * Manages the selection and lifecycle of music playlists.
- * It determines the best playlist based on current game conditions and manages the currently playing track.
  */
 public class PlaylistManager {
     private List<SongRule> currentPlaylist = new ArrayList<>();
@@ -20,28 +19,28 @@ public class PlaylistManager {
     private List<SongRule> pendingPlaylist = null;
     private long pendingPlaylistTimestamp = 0;
 
-    public void update(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean log) {
-        List<SongRule> newlyFoundPlaylist = findBestMatchingRules(evaluator, combatTracker, mc, log);
+    public void update(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean logInterval) {
+        boolean shouldTrace = ModConfig.getInstance().enableDebugLogging && logInterval;
+
+        List<SongRule> newlyFoundPlaylist = findBestMatchingRules(evaluator, combatTracker, mc, shouldTrace);
         int newlyFoundPriority = getPriority(newlyFoundPlaylist);
 
         int delaySeconds = ModConfig.getInstance().contextChangeDelaySeconds;
 
         if (delaySeconds == 0) {
             if (!arePlaylistsEqual(newlyFoundPlaylist, this.currentPlaylist)) {
-                if (log) MusicLogger.log("[PlaylistManager] Context changed (delay disabled). Creating new playlist.");
+                if (logInterval) MusicLogger.log("[PlaylistManager] Context changed (delay disabled). Creating new playlist.");
                 commitChange(newlyFoundPlaylist, newlyFoundPriority);
             }
             return;
         }
 
-        // If the new playlist has a higher priority, switch immediately, ignoring any delays.
         if (newlyFoundPriority > this.currentPriority) {
             MusicLogger.log("[PlaylistManager] High-priority override detected! Old: " + this.currentPriority + ", New: " + newlyFoundPriority + ". Changing music immediately.");
             commitChange(newlyFoundPlaylist, newlyFoundPriority);
             return;
         }
 
-        // If context returned to what's currently playing, cancel any pending change.
         if (arePlaylistsEqual(newlyFoundPlaylist, this.currentPlaylist)) {
             if (this.pendingPlaylist != null) {
                 MusicLogger.log("[PlaylistManager] Context returned to current playlist. Cancelling pending change.");
@@ -51,17 +50,15 @@ public class PlaylistManager {
             return;
         }
 
-        // If the newly found context is the same as the one we are waiting for, check the timer.
         if (arePlaylistsEqual(newlyFoundPlaylist, this.pendingPlaylist)) {
             long elapsed = System.currentTimeMillis() - this.pendingPlaylistTimestamp;
             if (elapsed > delaySeconds * 1000L) {
                 MusicLogger.log("[PlaylistManager] Context has been stable for " + delaySeconds + "s. Committing change.");
                 commitChange(this.pendingPlaylist, getPriority(this.pendingPlaylist));
             } else {
-                if (log) MusicLogger.log("[PlaylistManager] Context is stable but waiting for timer (" + (elapsed / 1000L) + "s / " + delaySeconds + "s).");
+                if (logInterval) MusicLogger.log("[PlaylistManager] Context is stable but waiting for timer (" + (elapsed / 1000L) + "s / " + delaySeconds + "s).");
             }
         } else {
-            // The context has changed to something new. Start the timer for this new context.
             MusicLogger.log("[PlaylistManager] Context changed. Starting " + delaySeconds + "s timer for new playlist.");
             this.pendingPlaylist = newlyFoundPlaylist;
             this.pendingPlaylistTimestamp = System.currentTimeMillis();
@@ -95,11 +92,17 @@ public class PlaylistManager {
         return highestPriority;
     }
 
-    private List<SongRule> findBestMatchingRules(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean log) {
+    private List<SongRule> findBestMatchingRules(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean trace) {
         List<SongRule> potentialRules = new ArrayList<>();
+
+        if (trace) MusicLogger.trace("--- Evaluating Rules ---");
+
         for (SongRule rule : MusicManager.getSongRules()) {
-            if (evaluator.check(rule.conditions, mc, combatTracker, false)) { // Logging disabled for individual checks
+            if (trace) MusicLogger.trace("Checking: " + rule.file + " (Priority: " + rule.priority + ")");
+
+            if (evaluator.check(rule.conditions, mc, combatTracker)) {
                 potentialRules.add(rule);
+                if (trace) MusicLogger.trace("   -> MATCH!");
             }
         }
 
@@ -117,6 +120,11 @@ public class PlaylistManager {
                 }
             }
         }
+
+        if (trace && !bestPlaylist.isEmpty()) {
+            MusicLogger.trace("--- Best Match Found: Priority " + bestPriority + ", Count: " + bestPlaylist.size() + " ---");
+        }
+
         return bestPlaylist;
     }
 
@@ -134,17 +142,10 @@ public class PlaylistManager {
         return this.currentSongRule;
     }
 
-    /**
-     * Checks if a context change is waiting for its timer to complete.
-     */
     public boolean hasPendingChange() {
         return this.pendingPlaylist != null;
     }
 
-    /**
-     * Immediately commits the pending playlist change. Used when a song ends naturally
-     * to prevent playing another song from the old, outdated playlist.
-     */
     public void forceCommitPendingChange() {
         if (this.pendingPlaylist != null) {
             MusicLogger.log("[PlaylistManager] Forcing commit of pending change due to song ending.");
