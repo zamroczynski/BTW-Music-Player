@@ -22,6 +22,7 @@ Players can create and install their own "Music Packs" containing music files an
   - Boss Battles: Unique tracks for fights against the Ender Dragon and the Wither.
   - Victory: A special theme plays after defeating a boss.
 - Multi-Music Pack Support: Load tracks from a single, specific music pack or from all installed packs at once.
+- In-Game Configuration: Manage settings, select music packs, and open the music folder directly from the game options menu via a new gear icon.
 
 ### Downloads
 - BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -73,10 +74,19 @@ This is what your file structure should look like after installing the mod and t
 ---
 
 ### Configuration
-The configuration file is created automatically the first time you run the game with the mod installed. You can find it at the following location:
-`.minecraft/config/btw-music-player.cfg`
+You can configure the mod directly inside the game!
+1. Go to **Options**.
+2. Look for the **Music** slider.
+3. Click the small **Gear Icon** next to the slider.
 
-You can open this file with any text editor (e.g., Notepad, VS Code).
+This menu allows you to:
+- Browse and validate installed Music Packs (Green = Valid, Red = Error).
+- Toggle between `ALL` (load all packs) and `SINGLE` (load one specific pack) modes.
+- Adjust the **Context Delay** slider.
+- Toggle **Debug Logging**.
+- Quickly open the `musicpacks` folder on your computer using the **Open Folder** button.
+
+Alternatively, you can edit the configuration file manually at `.minecraft/config/btw-music-player.cfg`.
 
 #### Available Options
 - `musicpack_loading_mode`
@@ -212,6 +222,7 @@ Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę or
   - Walki z Bossami: Unikalne utwory podczas walki z Ender Dragonem i Witherem.
   - Zwycięstwo: Specjalna muzyka odtwarzana po pokonaniu bossa.
 - Wsparcie dla Wielu Musicpacków: Wczytuj utwory z jednego, wybranego musicpacka lub ze wszystkich zainstalowanych jednocześnie.
+- Konfiguracja w Grze: Zarządzaj ustawieniami, wybieraj musicpacki i otwieraj folder z muzyką bezpośrednio z menu opcji gry, klikając nową ikonę zębatki.
 
 ### Pobieranie
 - Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -263,10 +274,19 @@ Tak powinna wyglądać Twoja struktura plików po zainstalowaniu modyfikacji i d
 ```
 
 ### Konfiguracja
-Plik konfiguracyjny jest tworzony automatycznie podczas pierwszego uruchomienia gry z zainstalowaną modyfikacją. Znajdziesz go w następującej lokalizacji:
-`.minecraft/config/btw-music-player.cfg`
+Modyfikację możesz konfigurować bezpośrednio w grze!
+1. Wejdź w **Opcje**.
+2. Znajdź suwak **Muzyka**.
+3. Kliknij małą **ikonę zębatki** znajdującą się obok suwaka.
 
-Możesz go otworzyć za pomocą dowolnego edytora tekstu (np. Notatnik, VS Code).
+Menu to pozwala na:
+- Przeglądanie i sprawdzanie zainstalowanych Musicpacków (Zielony = Poprawny, Czerwony = Błąd).
+- Przełączanie trybu ładowania między `ALL` (wszystkie paczki) a `SINGLE` (tylko wybrana).
+- Regulację opóźnienia zmiany muzyki (**Context Delay**).
+- Włączenie/wyłączenie logowania błędów (**Debug Logging**).
+- Szybkie otwarcie folderu `musicpacks` za pomocą przycisku **Otwórz Folder**.
+
+Alternatywnie, możesz edytować plik konfiguracyjny ręcznie w `.minecraft/config/btw-music-player.cfg`.
 
 #### Dostępne Opcje
 - `musicpack_loading_mode`
