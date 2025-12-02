@@ -62,6 +62,7 @@ public class ModConfig {
     }
 
     public void saveConfig() {
+        MusicLogger.log("Saving configuration to disk...");
         Properties props = new Properties();
         props.setProperty("musicpack_loading_mode", this.loadingMode);
         props.setProperty("single_musicpack_name", this.singleMusicPackName);

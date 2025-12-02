@@ -11,7 +11,8 @@
     "PlayerControllerMPMixin",
     "BTWSquidEntityAccessor",
     "EntityWitherMixin",
-    "EntityDragonMixin"
+    "EntityDragonMixin",
+    "GuiOptionsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

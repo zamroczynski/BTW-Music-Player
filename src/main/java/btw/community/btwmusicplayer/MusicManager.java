@@ -1,7 +1,9 @@
 package btw.community.btwmusicplayer;
 
+import btw.community.btwmusicplayer.data.MusicPackStatus;
 import btw.community.btwmusicplayer.data.SongRule;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -11,6 +13,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -22,52 +25,58 @@ public class MusicManager {
     private static boolean isLoaded = false;
 
     /**
-     * Main loading method, called once at addon startup.
+     * Clears current rules and reloads everything from disk based on current Config.
+     */
+    public static void reload() {
+        MusicLogger.always("--- Reloading Music System ---");
+        allSongRules.clear();
+        isLoaded = false;
+
+        ModConfig.getInstance().loadConfig();
+
+        load();
+
+        MusicLogger.always("--- Reload Complete. Rules active: " + allSongRules.size() + " ---");
+    }
+
+    /**
+     * Main loading method.
      */
     public static void load() {
-        if (isLoaded) return;
+        if (isLoaded) {
+            MusicLogger.log("MusicManager is already loaded. Skipping.");
+            return;
+        }
 
         ModConfig config = ModConfig.getInstance();
         Path gameDir = FabricLoader.getInstance().getGameDir();
-
-        MusicLogger.always("--- Starting to load Music Packs... ---");
-        MusicLogger.trace("Using game directory: " + gameDir.toAbsolutePath());
-
         Path musicPacksDir = gameDir.resolve(ROOT_DIR_NAME);
 
-        if (!Files.isDirectory(musicPacksDir)) {
-            MusicLogger.always("Folder '" + musicPacksDir.toAbsolutePath() + "' does not exist. Creating it...");
-            try {
-                Files.createDirectories(musicPacksDir);
-                MusicLogger.always("Created empty musicpacks folder. Please add music packs.");
-            } catch (IOException e) {
-                MusicLogger.error("Failed to create musicpacks folder!");
-                e.printStackTrace();
-            }
+        MusicLogger.always("--- Starting to load Music Packs... ---");
+
+        if (!ensureDirectoryExists(musicPacksDir)) {
             return;
         }
 
         boolean loadAll = config.loadingMode.equalsIgnoreCase("ALL");
         String targetPack = config.singleMusicPackName;
 
-        MusicLogger.trace("Loading Mode: " + config.loadingMode + (loadAll ? "" : " (Target: " + targetPack + ")"));
+        MusicLogger.log("Loading Mode: " + config.loadingMode + (loadAll ? "" : " (Target: " + targetPack + ")"));
 
         Type songRuleListType = new TypeToken<ArrayList<SongRule>>(){}.getType();
 
         try (Stream<Path> paths = Files.list(musicPacksDir)) {
             paths.filter(Files::isDirectory).forEach(musicPackPath -> {
                 String packName = musicPackPath.getFileName().toString();
-                MusicLogger.trace("Found directory: " + packName);
 
-                if (!loadAll && !packName.equalsIgnoreCase(targetPack)) {
-                    MusicLogger.trace(" -> Skipping (Mode is SINGLE and this is not '" + targetPack + "')");
+                if (!loadAll && !packName.equals(targetPack)) {
                     return;
                 }
 
                 Path songsJsonFile = musicPackPath.resolve(CONFIG_FILENAME);
 
                 if (Files.exists(songsJsonFile)) {
-                    MusicLogger.always("Processing Music Pack: " + packName);
+                    MusicLogger.log("Reading rules from: " + packName);
                     try (Reader reader = Files.newBufferedReader(songsJsonFile)) {
                         List<SongRule> rules = GSON.fromJson(reader, songRuleListType);
 
@@ -76,26 +85,97 @@ public class MusicManager {
                                 rule.musicPackPath = musicPackPath.toAbsolutePath().toString();
                             }
                             allSongRules.addAll(rules);
-                            MusicLogger.log(" -> Loaded " + rules.size() + " rules from " + packName);
+                            MusicLogger.log(" -> Added " + rules.size() + " rules from " + packName);
                         } else {
                             MusicLogger.error(" -> " + CONFIG_FILENAME + " is empty or invalid in " + packName);
                         }
 
                     } catch (Exception e) {
-                        MusicLogger.error(" -> Error parsing " + CONFIG_FILENAME + " in " + packName);
+                        MusicLogger.error(" -> CRITICAL ERROR parsing " + CONFIG_FILENAME + " in " + packName + ": " + e.getMessage());
                         e.printStackTrace();
                     }
                 } else {
-                    MusicLogger.error(" -> No " + CONFIG_FILENAME + " found in " + packName + ". Skipping.");
+                    MusicLogger.error(" -> No " + CONFIG_FILENAME + " found in " + packName);
                 }
             });
         } catch (IOException e) {
-            MusicLogger.error("Could not access " + ROOT_DIR_NAME + " directory.");
+            MusicLogger.error("Could not list files in " + ROOT_DIR_NAME);
             e.printStackTrace();
         }
 
         MusicLogger.always("--- Loading finished. Total rules loaded: " + allSongRules.size() + " ---");
         isLoaded = true;
+    }
+
+    /**
+     * Scans the /musicpacks directory and validates each pack WITHOUT loading it into the game.
+     * Used by the Configuration GUI to display status list.
+     * @return List of MusicPackStatus objects.
+     */
+    public static List<MusicPackStatus> scanAvailablePacks() {
+        List<MusicPackStatus> statuses = new ArrayList<>();
+        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path musicPacksDir = gameDir.resolve(ROOT_DIR_NAME);
+
+        if (!ensureDirectoryExists(musicPacksDir)) {
+            return statuses;
+        }
+
+        MusicLogger.log("[Scanner] Scanning for available music packs...");
+        Type songRuleListType = new TypeToken<ArrayList<SongRule>>(){}.getType();
+
+        try (Stream<Path> paths = Files.list(musicPacksDir)) {
+            paths.filter(Files::isDirectory).forEach(musicPackPath -> {
+                String packName = musicPackPath.getFileName().toString();
+                Path songsJsonFile = musicPackPath.resolve(CONFIG_FILENAME);
+
+                boolean isValid = false;
+                String message = "OK";
+
+                if (!Files.exists(songsJsonFile)) {
+                    message = "Missing " + CONFIG_FILENAME;
+                } else {
+                    try (Reader reader = Files.newBufferedReader(songsJsonFile)) {
+                        List<SongRule> rules = GSON.fromJson(reader, songRuleListType);
+                        if (rules == null) {
+                            message = "JSON is null/empty";
+                        } else {
+                            isValid = true;
+                            message = rules.size() + " songs configured";
+                        }
+                    } catch (JsonSyntaxException e) {
+                        message = "JSON Syntax Error";
+                        MusicLogger.error("[Scanner] Syntax error in " + packName + ": " + e.getMessage());
+                    } catch (Exception e) {
+                        message = "Error: " + e.getClass().getSimpleName();
+                        MusicLogger.error("[Scanner] Unknown error in " + packName + ": " + e.getMessage());
+                    }
+                }
+
+                statuses.add(new MusicPackStatus(packName, musicPackPath.toAbsolutePath().toString(), isValid, message));
+                MusicLogger.log("[Scanner] Found: " + packName + " [" + (isValid ? "VALID" : "INVALID") + "] - " + message);
+            });
+        } catch (IOException e) {
+            MusicLogger.error("[Scanner] Disk IO Error: " + e.getMessage());
+        }
+
+        Collections.sort(statuses, (a, b) -> a.folderName.compareToIgnoreCase(b.folderName));
+
+        return statuses;
+    }
+
+    private static boolean ensureDirectoryExists(Path dir) {
+        if (!Files.isDirectory(dir)) {
+            try {
+                Files.createDirectories(dir);
+                MusicLogger.always("Created missing folder: " + dir);
+                return true;
+            } catch (IOException e) {
+                MusicLogger.error("Failed to create folder: " + dir);
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
