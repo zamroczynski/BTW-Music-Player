@@ -19,6 +19,8 @@ public class PlaylistManager {
     public void update(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean logInterval) {
         boolean shouldTrace = ModConfig.getInstance().enableDebugLogging && logInterval;
 
+        evaluator.updateBiomeState(mc, shouldTrace);
+
         List<SongRule> newlyFoundPlaylist = findBestMatchingRules(evaluator, combatTracker, mc, shouldTrace);
         int newlyFoundPriority = getPriority(newlyFoundPlaylist);
 

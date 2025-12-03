@@ -8,9 +8,44 @@ import java.util.Map;
 
 /**
  * Evaluates if a song's conditions match the current state of the game.
- * Updated to support deep trace logging for debugging music packs.
+ * Updated to support deep trace logging and Stateful Biome Logic (Memory).
  */
 public class ConditionEvaluator {
+
+    // Stores the last biome that was NOT a river or beach.
+    private String lastSignificantBiome = null;
+
+    /**
+     * Updates the internal biome state. Should be called once per update cycle.
+     */
+    public void updateBiomeState(Minecraft mc, boolean trace) {
+        EntityClientPlayerMP player = mc.thePlayer;
+        if (player == null || player.worldObj == null) return;
+
+        // 1. Get Raw Biome
+        String rawBiomeName = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
+
+        // 2. Normalize (lowercase, remove spaces)
+        String currentBiome = rawBiomeName.toLowerCase().replace(' ', '_');
+
+        // 3. Map Variants (Hills/Edges -> Parents)
+        String mappedBiome = mapVariantToParent(currentBiome);
+
+        // 4. Handle Transparent Biomes (Rivers/Beaches)
+        if (isTransparentBiome(mappedBiome)) {
+            // We are in a river/beach. Do NOT update lastSignificantBiome.
+            // If the player logged in here, lastSignificantBiome remains null.
+            if (trace) {
+                 MusicLogger.trace("In transparent biome: " + mappedBiome + ". Keeping history: " + lastSignificantBiome);
+            }
+        } else {
+            // We are in a solid biome. Update history.
+            if (!mappedBiome.equals(lastSignificantBiome)) {
+                if (trace) MusicLogger.trace("Biome Context Changed: " + lastSignificantBiome + " -> " + mappedBiome + " (Raw: " + rawBiomeName + ")");
+                this.lastSignificantBiome = mappedBiome;
+            }
+        }
+    }
 
     public boolean check(SongConditions conditions, Minecraft mc, CombatTracker combatTracker, Map<String, Integer> failureStats) {
         EntityClientPlayerMP player = mc.thePlayer;
@@ -105,17 +140,53 @@ public class ConditionEvaluator {
             }
         }
 
-        // 9. Biome
+        // 9. Biome (Smart Logic)
         if (conditions.biome != null) {
-            String biomeName = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
-            String normalizedBiomeName = biomeName.toLowerCase().replace(' ', '_');
-            if (!conditions.biome.equalsIgnoreCase(normalizedBiomeName)) {
-                recordFailure(failureStats, "Biome mismatch (Req: " + conditions.biome + ")");
+            // Requirement: Ignore rules that target rivers/beaches directly
+            if (isTransparentBiome(conditions.biome)) {
+                recordFailure(failureStats, "Rule ignored (Targets transparent biome: " + conditions.biome + ")");
+                return false;
+            }
+
+            // If player logged in river/beach, we have no history.
+            // Only allow non-biome specific songs (which this is NOT, since conditions.biome is not null).
+            if (this.lastSignificantBiome == null) {
+                recordFailure(failureStats, "No biome history (Player in river since login)");
+                return false;
+            }
+
+            if (!conditions.biome.equalsIgnoreCase(this.lastSignificantBiome)) {
+                recordFailure(failureStats, "Biome mismatch (Req: " + conditions.biome + ", Actual Context: " + this.lastSignificantBiome + ")");
                 return false;
             }
         }
 
         return true;
+    }
+
+    private String mapVariantToParent(String biome) {
+        if (biome.endsWith("hills")) {
+            // desert_hills -> desert, forest_hills -> forest, etc.
+            // "hills" is 5 chars.
+            String parent = biome.substring(0, biome.length() - 5);
+            // Handle underscore if present (e.g. desert_hills -> desert_)
+            if (parent.endsWith("_")) {
+                parent = parent.substring(0, parent.length() - 1);
+            }
+            return parent;
+        }
+
+        // Specific mapping for requested Edge and Shore cases
+        if (biome.equals("extreme_hills_edge")) return "extreme_hills";
+        if (biome.equals("mushroomislandshore")) return "mushroomisland";
+
+        return biome;
+    }
+
+    private boolean isTransparentBiome(String biome) {
+        return biome.equals("river") ||
+                biome.equals("frozen_river") ||
+                biome.equals("beach");
     }
 
     private void recordFailure(Map<String, Integer> stats, String reason) {
