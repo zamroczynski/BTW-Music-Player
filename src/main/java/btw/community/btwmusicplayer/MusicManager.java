@@ -109,6 +109,7 @@ public class MusicManager {
 
     /**
      * Scans the /musicpacks directory and validates each pack WITHOUT loading it into the game.
+     * Checks JSON syntax AND file existence.
      * Used by the Configuration GUI to display status list.
      * @return List of MusicPackStatus objects.
      */
@@ -137,11 +138,48 @@ public class MusicManager {
                 } else {
                     try (Reader reader = Files.newBufferedReader(songsJsonFile)) {
                         List<SongRule> rules = GSON.fromJson(reader, songRuleListType);
-                        if (rules == null) {
-                            message = "JSON is null/empty";
+                        if (rules == null || rules.isEmpty()) {
+                            message = "JSON is empty";
                         } else {
-                            isValid = true;
-                            message = rules.size() + " songs configured";
+                            // Deep Validation
+                            int missingFiles = 0;
+                            int invalidFormats = 0;
+
+                            for (SongRule rule : rules) {
+                                if (rule.file == null || rule.file.trim().isEmpty()) {
+                                    MusicLogger.error("[Scanner] Pack '" + packName + "': Found rule with empty file path.");
+                                    missingFiles++;
+                                    continue;
+                                }
+
+                                // Check 1: Format
+                                if (!rule.file.toLowerCase().endsWith(".ogg")) {
+                                    MusicLogger.error("[Scanner] Pack '" + packName + "': Invalid format (not .ogg): " + rule.file);
+                                    invalidFormats++;
+                                }
+
+                                // Check 2: Existence
+                                Path songPath = musicPackPath.resolve(rule.file);
+                                if (!Files.exists(songPath)) {
+                                    MusicLogger.error("[Scanner] Pack '" + packName + "': Missing file: " + rule.file);
+                                    missingFiles++;
+                                }
+                            }
+
+                            if (missingFiles > 0 || invalidFormats > 0) {
+                                isValid = false;
+                                if (missingFiles > 0 && invalidFormats > 0) {
+                                    message = "Errors: Missing & Invalid files";
+                                } else if (missingFiles > 0) {
+                                    message = "Error: Missing " + missingFiles + " files";
+                                } else {
+                                    message = "Error: " + invalidFormats + " invalid formats";
+                                }
+                                MusicLogger.log("[Scanner] " + packName + " failed validation. Missing: " + missingFiles + ", Bad Format: " + invalidFormats);
+                            } else {
+                                isValid = true;
+                                message = rules.size() + " songs verified";
+                            }
                         }
                     } catch (JsonSyntaxException e) {
                         message = "JSON Syntax Error";
@@ -149,11 +187,12 @@ public class MusicManager {
                     } catch (Exception e) {
                         message = "Error: " + e.getClass().getSimpleName();
                         MusicLogger.error("[Scanner] Unknown error in " + packName + ": " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
 
                 statuses.add(new MusicPackStatus(packName, musicPackPath.toAbsolutePath().toString(), isValid, message));
-                MusicLogger.log("[Scanner] Found: " + packName + " [" + (isValid ? "VALID" : "INVALID") + "] - " + message);
+                MusicLogger.log("[Scanner] Checked: " + packName + " [" + (isValid ? "VALID" : "INVALID") + "] - " + message);
             });
         } catch (IOException e) {
             MusicLogger.error("[Scanner] Disk IO Error: " + e.getMessage());
