@@ -10,11 +10,9 @@ import java.net.URL;
 /**
  * Manages the state of music playback (IDLE, PLAYING, FADING_IN, FADING_OUT).
  * Handles the technical details of playing, stopping, and transitioning between songs.
- * Refactored to accept SoundSystem dynamically to prevent stale references on resource reload.
+ * Refactored to accept SoundSystem dynamically and use configurable fade duration.
  */
 public class PlaybackStateMachine {
-    private static final long FADE_DURATION_MS = 1000;
-
     private final GameSettings options;
 
     private MusicState musicState = MusicState.IDLE;
@@ -32,7 +30,10 @@ public class PlaybackStateMachine {
         }
 
         long currentTime = System.currentTimeMillis();
-        float progress = (float)(currentTime - transitionStartTime) / FADE_DURATION_MS;
+
+        int fadeDurationMs = ModConfig.getInstance().fadeDurationMs;
+        float progress = (fadeDurationMs <= 0) ? 1.1f : (float)(currentTime - transitionStartTime) / fadeDurationMs;
+
         String targetSongPath = (targetSongRule != null) ? targetSongRule.file : null;
 
         try {

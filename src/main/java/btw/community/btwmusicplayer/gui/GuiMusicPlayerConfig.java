@@ -9,6 +9,8 @@ public class GuiMusicPlayerConfig extends GuiScreen {
     private final ModConfig config;
 
     private GuiDelaySlider delaySlider;
+    private GuiFadeSlider fadeSlider;
+    private GuiCaveSlider caveSlider;
     private GuiButton debugButton;
 
     public GuiMusicPlayerConfig(GuiScreen parentScreen) {
@@ -21,14 +23,21 @@ public class GuiMusicPlayerConfig extends GuiScreen {
         this.buttonList.clear();
 
         int x = this.width / 2 - 100;
-        int y = this.height / 4;
+        int yStart = this.height / 6; // Start higher up
+        int spacing = 24;
 
-        this.buttonList.add(new GuiButton(100, x, y, 200, 20, "Music Packs..."));
+        this.buttonList.add(new GuiButton(100, x, yStart, 200, 20, "Music Packs..."));
 
-        this.delaySlider = new GuiDelaySlider(101, x, y + 25, 200, 20, config);
+        this.delaySlider = new GuiDelaySlider(101, x, yStart + spacing, 200, 20, config);
         this.buttonList.add(this.delaySlider);
 
-        this.debugButton = new GuiButton(102, x, y + 50, 200, 20, getDebugButtonText());
+        this.fadeSlider = new GuiFadeSlider(102, x, yStart + spacing * 2, 200, 20, config);
+        this.buttonList.add(this.fadeSlider);
+
+        this.caveSlider = new GuiCaveSlider(103, x, yStart + spacing * 3, 200, 20, config);
+        this.buttonList.add(this.caveSlider);
+
+        this.debugButton = new GuiButton(104, x, yStart + spacing * 4, 200, 20, getDebugButtonText());
         this.buttonList.add(this.debugButton);
 
         this.buttonList.add(new GuiButton(200, x, this.height - 40, 200, 20, I18n.getString("gui.done")));
@@ -43,7 +52,7 @@ public class GuiMusicPlayerConfig extends GuiScreen {
             else if (button.id == 100) {
                 this.mc.displayGuiScreen(new GuiMusicPackSelector(this));
             }
-            else if (button.id == 102) {
+            else if (button.id == 104) {
                 config.enableDebugLogging = !config.enableDebugLogging;
                 this.debugButton.displayString = getDebugButtonText();
             }
@@ -64,7 +73,7 @@ public class GuiMusicPlayerConfig extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
-        this.drawCenteredString(this.fontRenderer, "BTW Music Player Configuration", this.width / 2, 20, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, "BTW Music Player Configuration", this.width / 2, 15, 0xFFFFFF);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 }
