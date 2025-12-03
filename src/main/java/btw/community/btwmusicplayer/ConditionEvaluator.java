@@ -78,9 +78,7 @@ public class ConditionEvaluator {
         // 6. Cave / Underground
         if (conditions.is_in_cave != null) {
             int configCaveY = ModConfig.getInstance().caveYLevel;
-            boolean isBelowSeaLevel = player.posY < configCaveY;
-            boolean canSeeSky = player.worldObj.canBlockSeeTheSky((int)player.posX, (int)player.posY, (int)player.posZ);
-            boolean isCave = isBelowSeaLevel && !canSeeSky;
+            boolean isCave = player.posY < configCaveY;
 
             if (conditions.is_in_cave != isCave) {
                 recordFailure(failureStats, "Cave condition mismatch (Req: " + conditions.is_in_cave + ")");
