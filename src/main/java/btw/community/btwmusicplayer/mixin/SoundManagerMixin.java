@@ -30,7 +30,7 @@ public abstract class SoundManagerMixin {
             this.combatTracker = new CombatTracker();
             this.conditionEvaluator = new ConditionEvaluator();
             this.playlistManager = new PlaylistManager();
-            this.playbackStateMachine = new PlaybackStateMachine(this.sndSystem, this.options);
+            this.playbackStateMachine = new PlaybackStateMachine(this.options);
             MusicLogger.always("Music Player components initialized.");
         }
     }
@@ -38,7 +38,12 @@ public abstract class SoundManagerMixin {
     @Inject(method = "playRandomMusicIfReady", at = @At("HEAD"), cancellable = true)
     private void onPlayRandomMusic(CallbackInfo ci) {
         ci.cancel();
-        if (this.sndSystem == null || this.options == null || this.options.musicVolume == 0.0f) {
+
+        if (this.sndSystem == null) {
+            return;
+        }
+
+        if (this.options == null || this.options.musicVolume == 0.0f) {
             return;
         }
 
@@ -56,16 +61,22 @@ public abstract class SoundManagerMixin {
         playlistManager.update(conditionEvaluator, combatTracker, mc, shouldLog);
 
         // 3. Handle song playback logic
-        if (playbackStateMachine != null && playbackStateMachine.getState() == MusicState.PLAYING && !this.sndSystem.playing("BgMusic")) {
+        if (playbackStateMachine != null
+                && playbackStateMachine.getState() == MusicState.PLAYING
+                && !this.sndSystem.playing("BgMusic")) {
+
             if (playlistManager.hasPendingChange()) {
                 playlistManager.forceCommitPendingChange();
             } else {
-                MusicLogger.log("[SoundManager] Current song finished naturally. Advancing playlist.");
+                if (shouldLog) MusicLogger.log("[SoundManager] Song stopped (finished or system reset). Advancing.");
                 playlistManager.advanceToNextSong();
             }
         }
 
         SongRule targetSong = playlistManager.getCurrentSongRule();
-        playbackStateMachine.update(targetSong, shouldLog);
+
+        if (playbackStateMachine != null) {
+            playbackStateMachine.update(targetSong, this.sndSystem, shouldLog);
+        }
     }
 }

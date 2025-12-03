@@ -10,88 +10,110 @@ import java.net.URL;
 /**
  * Manages the state of music playback (IDLE, PLAYING, FADING_IN, FADING_OUT).
  * Handles the technical details of playing, stopping, and transitioning between songs.
+ * Refactored to accept SoundSystem dynamically to prevent stale references on resource reload.
  */
 public class PlaybackStateMachine {
     private static final long FADE_DURATION_MS = 1000;
 
-    private final SoundSystem sndSystem;
     private final GameSettings options;
 
     private MusicState musicState = MusicState.IDLE;
     private long transitionStartTime = 0;
-    private String currentSongPath = null; // Store path to check for changes
+    private String currentSongPath = null;
 
-    public PlaybackStateMachine(SoundSystem sndSystem, GameSettings options) {
-        this.sndSystem = sndSystem;
+    public PlaybackStateMachine(GameSettings options) {
         this.options = options;
     }
 
-    public void update(SongRule targetSongRule, boolean log) {
+    public void update(SongRule targetSongRule, SoundSystem sndSystem, boolean log) {
+        if (sndSystem == null) {
+            if (log) MusicLogger.trace("[Playback] SoundSystem is null, skipping update.");
+            return;
+        }
+
         long currentTime = System.currentTimeMillis();
         float progress = (float)(currentTime - transitionStartTime) / FADE_DURATION_MS;
         String targetSongPath = (targetSongRule != null) ? targetSongRule.file : null;
 
-        switch (musicState) {
-            case IDLE:
-                if (targetSongRule != null) {
-                    playNewSong(targetSongRule, 0.0f);
-                    this.transitionStartTime = currentTime;
-                    changeState(MusicState.FADING_IN, log);
-                }
-                break;
-
-            case PLAYING:
-                if (targetSongPath == null || !targetSongPath.equals(this.currentSongPath)) {
-                    this.transitionStartTime = currentTime;
-                    changeState(MusicState.FADING_OUT, log);
-                }
-                break;
-
-            case FADING_IN:
-                if (targetSongPath == null || !targetSongPath.equals(this.currentSongPath)) {
-                    this.transitionStartTime = currentTime;
-                    changeState(MusicState.FADING_OUT, log);
-                } else if (progress >= 1.0f) {
-                    this.sndSystem.setVolume("BgMusic", options.musicVolume);
-                    changeState(MusicState.PLAYING, log);
-                } else {
-                    this.sndSystem.setVolume("BgMusic", progress * options.musicVolume);
-                }
-                break;
-
-            case FADING_OUT:
-                if (progress >= 1.0f) {
-                    this.sndSystem.stop("BgMusic");
-                    this.currentSongPath = null;
+        try {
+            switch (musicState) {
+                case IDLE:
                     if (targetSongRule != null) {
-                        playNewSong(targetSongRule, 0.0f);
+                        playNewSong(targetSongRule, sndSystem, 0.0f);
                         this.transitionStartTime = currentTime;
                         changeState(MusicState.FADING_IN, log);
-                    } else {
-                        changeState(MusicState.IDLE, log);
                     }
-                } else {
-                    this.sndSystem.setVolume("BgMusic", (1.0f - progress) * options.musicVolume);
-                }
-                break;
+                    break;
+
+                case PLAYING:
+                    if (targetSongPath == null || !targetSongPath.equals(this.currentSongPath)) {
+                        this.transitionStartTime = currentTime;
+                        changeState(MusicState.FADING_OUT, log);
+                    }
+                    break;
+
+                case FADING_IN:
+                    if (targetSongPath == null || !targetSongPath.equals(this.currentSongPath)) {
+                        this.transitionStartTime = currentTime;
+                        changeState(MusicState.FADING_OUT, log);
+                    } else if (progress >= 1.0f) {
+                        sndSystem.setVolume("BgMusic", options.musicVolume);
+                        changeState(MusicState.PLAYING, log);
+                    } else {
+                        sndSystem.setVolume("BgMusic", progress * options.musicVolume);
+                    }
+                    break;
+
+                case FADING_OUT:
+                    if (progress >= 1.0f) {
+                        sndSystem.stop("BgMusic");
+                        this.currentSongPath = null;
+                        if (targetSongRule != null) {
+                            playNewSong(targetSongRule, sndSystem, 0.0f);
+                            this.transitionStartTime = currentTime;
+                            changeState(MusicState.FADING_IN, log);
+                        } else {
+                            changeState(MusicState.IDLE, log);
+                        }
+                    } else {
+                        sndSystem.setVolume("BgMusic", (1.0f - progress) * options.musicVolume);
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            MusicLogger.error("[Playback] Critical error in update loop: " + e.getMessage());
+            e.printStackTrace();
+            this.musicState = MusicState.IDLE;
+            this.currentSongPath = null;
         }
     }
 
-    public void playNewSong(SongRule rule, float initialVolume) {
+    public void playNewSong(SongRule rule, SoundSystem sndSystem, float initialVolume) {
+        if (sndSystem == null) {
+            MusicLogger.error("[Playback] Cannot play song: SoundSystem is null.");
+            return;
+        }
+
         try {
             File songFile = new File(rule.musicPackPath, rule.file);
             if (songFile.exists()) {
                 this.currentSongPath = rule.file;
                 URL songUrl = songFile.toURI().toURL();
-                this.sndSystem.backgroundMusic("BgMusic", songUrl, rule.file, false);
-                this.sndSystem.setVolume("BgMusic", initialVolume * options.musicVolume);
-                this.sndSystem.play("BgMusic");
-                MusicLogger.log("[Playback] Starting to play: " + rule.file);
+
+                if (sndSystem.playing("BgMusic")) {
+                    sndSystem.stop("BgMusic");
+                }
+
+                sndSystem.backgroundMusic("BgMusic", songUrl, rule.file, false);
+                sndSystem.setVolume("BgMusic", initialVolume * options.musicVolume);
+                sndSystem.play("BgMusic");
+
+                MusicLogger.log("[Playback] Started playing: " + rule.file);
             } else {
                 MusicLogger.error("File does not exist: " + songFile.getAbsolutePath());
             }
         } catch (Exception e) {
-            MusicLogger.error("Cannot open file: " + rule.file);
+            MusicLogger.error("Cannot open file: " + rule.file + ". Error: " + e.getMessage());
             e.printStackTrace();
         }
     }
