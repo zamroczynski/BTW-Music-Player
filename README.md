@@ -82,7 +82,7 @@ You can configure the mod directly inside the game!
 This menu allows you to:
 - Browse and validate installed Music Packs (Green = Valid, Red = Error).
 - Toggle between `ALL` (load all packs) and `SINGLE` (load one specific pack) modes.
-- Adjust the **Context Delay** slider.
+- Adjust the **Context Delay**, **Crossfade** (fade duration), and **Cave Depth** sliders.
 - Toggle **Debug Logging**.
 - Quickly open the `musicpacks` folder on your computer using the **Open Folder** button.
 
@@ -109,14 +109,15 @@ Alternatively, you can edit the configuration file manually at `.minecraft/confi
     - **Values:**
       - `7` (default) - Music will change after the new context has been stable for 7 seconds.
       - `0` - Music changes are immediate.
-#### Example Configuration
-This is what the `btw-music-player.cfg` file would look like to load only a single music pack named `RadogostMusicPack`, with a 5-second music change delay and logging enabled:
-```
-musicpack_loading_mode=SINGLE
-single_musicpack_name=RadogostMusicPack
-enable_debug_logging=true
-context_change_delay_seconds=5
-```
+- `fade_duration_ms`
+    - **Description:** Sets the duration (in milliseconds) of the crossfade effect when music changes.
+    - **Values:**
+      - `1000` (default) - 1 second fade.
+      - `0` - Instant cut with no fading.
+- `cave_y_level`
+    - **Description:** Specifies the Y coordinate (height) below which the game considers the player to be in a "cave". This affects the `is_in_cave` condition.
+    - **Values:**
+      - `60` (default) - Standard sea level/underground start.
 ### Creating Your Own Music Pack
 Anyone can create their own music pack! The process involves preparing your music files in `.ogg` format and defining playback rules in a special file called `songs.json`.
 
@@ -183,7 +184,7 @@ The following table lists all the conditions you can use in the `conditions` sec
 | biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, river, hell, sky, frozenocean, frozenriver, ice_plains, ice_mountains, mushroomisland, mushroomislandshore, beach, deserthills, foresthills, taigahills, extreme_hills_edge, jungle, junglehills | Specifies the biome. Use lowercase letters and replace spaces with `_`.      |
 | time_of_day        | "day", "night"                                  | Specifies the current time of day in the game.                                       |
 | weather            | "clear", "storm"                                | Checks if the weather is calm or if there is a storm.                          |
-| is_in_cave         | true, false                                     | Checks if the player is underground with no view of the sky.                      |
+| is_in_cave         | true, false                                     | Checks if the player is below the configured Y level (Default: 60).                     |
 | is_in_combat       | true, false                                     | Checks if the player is currently in combat.                                   |
 | boss_type          | "wither", "ender_dragon"                        | Checks if a specific boss is nearby                          |
 | victory_after_boss | true                                            | A special condition that is true for a short time after defeating a boss. |
@@ -282,7 +283,7 @@ Modyfikację możesz konfigurować bezpośrednio w grze!
 Menu to pozwala na:
 - Przeglądanie i sprawdzanie zainstalowanych Musicpacków (Zielony = Poprawny, Czerwony = Błąd).
 - Przełączanie trybu ładowania między `ALL` (wszystkie paczki) a `SINGLE` (tylko wybrana).
-- Regulację opóźnienia zmiany muzyki (**Context Delay**).
+- Regulację opóźnienia (**Context Delay**), czasu przejścia (**Crossfade**) oraz głębokości jaskiń (**Cave Depth**).
 - Włączenie/wyłączenie logowania błędów (**Debug Logging**).
 - Szybkie otwarcie folderu `musicpacks` za pomocą przycisku **Otwórz Folder**.
 
@@ -309,14 +310,15 @@ Alternatywnie, możesz edytować plik konfiguracyjny ręcznie w `.minecraft/conf
   - **Wartość:**
     - `7` (domyślna) - Muzyka zmieni się, gdy nowy kontekst będzie stabilny przez 7 sekundy.
     - `0` - Zmiany muzyki są natychmiastowe.
-#### Przykładowa konfiguracja
-Tak wygląda zawartość pliku `btw-music-player.cfg`, który ładuje tylko jeden musicpack o nazwie `RadogostMusicPack`, z 5-sekundowym opóźnieniem zmiany muzyki i włączonym logowaniem:
-```
-musicpack_loading_mode=SINGLE
-single_musicpack_name=RadogostmusicPack
-enable_debug_logging=true
-context_change_delay_seconds=5
-```
+- `fade_duration_ms`
+  - **Opis:** Określa czas trwania (w milisekundach) efektu wyciszania i zgłaśniania przy zmianie utworu.
+  - **Wartość:**
+    - `1000` (domyślna) - Przejście trwa 1 sekundę.
+    - `0` - Natychmiastowe cięcie bez wyciszania.
+- `cave_y_level`
+  - **Opis:** Określa wysokość (współrzędna Y), poniżej której gra uznaje, że gracz znajduje się w jaskini. Wpływa na warunek `is_in_cave`.
+  - **Wartość:**
+    - `60` (domyślna) - Standardowy poziom morza/wejścia pod ziemię.
 ### Tworzenie Własnego Musicpacka
 Każdy może stworzyć własny musicpack! Proces polega na przygotowaniu plików muzycznych w formacie `.ogg` i zdefiniowaniu zasad ich odtwarzania w specjalnym pliku `songs.json`.
 
@@ -376,7 +378,7 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 | biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, river, hell, sky, frozenocean, frozenriver, ice_plains, ice_mountains, mushroomisland, mushroomislandshore, beach, deserthills, foresthills, taigahills, extreme_hills_edge, jungle, junglehills | Określa biom. Nazwę biomu pisz małymi literami, a spacje zamieniaj na `_`.      |
 | time_of_day        | "day", "night"                                  | Określa aktualną porę dnia w grze.                                            |
 | weather            | "clear", "storm"                                | Sprawdza, czy pogoda jest spokojna, czy jest burza.                           |
-| is_in_cave         | true, false                                     | Sprawdza, czy gracz jest pod ziemią i nie widzi nieba.                        |
+| is_in_cave         | true, false                                     | Sprawdza, czy gracz znajduje się poniżej skonfigurowanego poziomu Y (Domyślnie: 60).                        |
 | is_in_combat       | true, false                                     | Sprawdza, czy gracz jest aktualnie w walce.                                   |
 | boss_type          | "wither", "ender_dragon"                        | Sprawdza, czy w pobliżu znajduje się określony boss.                          |
 | victory_after_boss | true                                            | Specjalny warunek, który jest spełniony przez krótki czas po pokonaniu bossa. |
