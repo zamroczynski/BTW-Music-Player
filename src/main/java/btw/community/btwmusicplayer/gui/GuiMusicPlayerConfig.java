@@ -23,21 +23,23 @@ public class GuiMusicPlayerConfig extends GuiScreen {
         this.buttonList.clear();
 
         int x = this.width / 2 - 100;
-        int yStart = this.height / 6; // Start higher up
+        int yStart = this.height / 6;
         int spacing = 24;
 
         this.buttonList.add(new GuiButton(100, x, yStart, 200, 20, "Music Packs..."));
 
-        this.delaySlider = new GuiDelaySlider(101, x, yStart + spacing, 200, 20, config);
+        this.buttonList.add(new GuiButton(105, x, yStart + spacing, 200, 20, "Song Conditions..."));
+
+        this.delaySlider = new GuiDelaySlider(101, x, yStart + spacing * 2, 200, 20, config);
         this.buttonList.add(this.delaySlider);
 
-        this.fadeSlider = new GuiFadeSlider(102, x, yStart + spacing * 2, 200, 20, config);
+        this.fadeSlider = new GuiFadeSlider(102, x, yStart + spacing * 3, 200, 20, config);
         this.buttonList.add(this.fadeSlider);
 
-        this.caveSlider = new GuiCaveSlider(103, x, yStart + spacing * 3, 200, 20, config);
+        this.caveSlider = new GuiCaveSlider(103, x, yStart + spacing * 4, 200, 20, config);
         this.buttonList.add(this.caveSlider);
 
-        this.debugButton = new GuiButton(104, x, yStart + spacing * 4, 200, 20, getDebugButtonText());
+        this.debugButton = new GuiButton(104, x, yStart + spacing * 5, 200, 20, getDebugButtonText());
         this.buttonList.add(this.debugButton);
 
         this.buttonList.add(new GuiButton(200, x, this.height - 40, 200, 20, I18n.getString("gui.done")));
@@ -51,6 +53,9 @@ public class GuiMusicPlayerConfig extends GuiScreen {
             }
             else if (button.id == 100) {
                 this.mc.displayGuiScreen(new GuiMusicPackSelector(this));
+            }
+            else if (button.id == 105) {
+                this.mc.displayGuiScreen(new GuiSongConditionsConfig(this));
             }
             else if (button.id == 104) {
                 config.enableDebugLogging = !config.enableDebugLogging;
