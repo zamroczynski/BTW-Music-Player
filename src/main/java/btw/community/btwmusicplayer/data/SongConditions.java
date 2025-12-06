@@ -9,4 +9,5 @@ public class SongConditions {
     public Boolean is_in_cave;
     public String boss_type;
     public String victory_after_boss;
+    public Boolean is_menu;
 }

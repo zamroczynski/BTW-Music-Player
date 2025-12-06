@@ -8,38 +8,27 @@ import java.util.Map;
 
 /**
  * Evaluates if a song's conditions match the current state of the game.
- * Updated to support deep trace logging and Stateful Biome Logic (Memory).
+ * Updated to allow music in ALL menus when outside of a world.
  */
 public class ConditionEvaluator {
 
-    // Stores the last biome that was NOT a river or beach.
     private String lastSignificantBiome = null;
 
-    /**
-     * Updates the internal biome state. Should be called once per update cycle.
-     */
     public void updateBiomeState(Minecraft mc, boolean trace) {
         EntityClientPlayerMP player = mc.thePlayer;
-        if (player == null || player.worldObj == null) return;
+        if (player == null || player.worldObj == null) {
+            return;
+        }
 
-        // 1. Get Raw Biome
         String rawBiomeName = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
-
-        // 2. Normalize (lowercase, remove spaces)
         String currentBiome = rawBiomeName.toLowerCase().replace(' ', '_');
-
-        // 3. Map Variants (Hills/Edges -> Parents)
         String mappedBiome = mapVariantToParent(currentBiome);
 
-        // 4. Handle Transparent Biomes (Rivers/Beaches)
         if (isTransparentBiome(mappedBiome)) {
-            // We are in a river/beach. Do NOT update lastSignificantBiome.
-            // If the player logged in here, lastSignificantBiome remains null.
             if (trace) {
-                 MusicLogger.trace("In transparent biome: " + mappedBiome + ". Keeping history: " + lastSignificantBiome);
+                MusicLogger.trace("In transparent biome: " + mappedBiome + ". Keeping history: " + lastSignificantBiome);
             }
         } else {
-            // We are in a solid biome. Update history.
             if (!mappedBiome.equals(lastSignificantBiome)) {
                 if (trace) MusicLogger.trace("Biome Context Changed: " + lastSignificantBiome + " -> " + mappedBiome + " (Raw: " + rawBiomeName + ")");
                 this.lastSignificantBiome = mappedBiome;
@@ -48,12 +37,37 @@ public class ConditionEvaluator {
     }
 
     public boolean check(SongConditions conditions, Minecraft mc, CombatTracker combatTracker, Map<String, Integer> failureStats) {
+        ModConfig config = ModConfig.getInstance();
         EntityClientPlayerMP player = mc.thePlayer;
-        if (player == null || player.worldObj == null) return false;
-        long worldTime = mc.theWorld.getTotalWorldTime();
+        boolean hasWorld = (player != null && player.worldObj != null);
+        long worldTime = hasWorld ? mc.theWorld.getTotalWorldTime() : 0;
 
-        // 1. Victory Condition
+        // --- 1. MENU CHECK ---
+        if (conditions.is_menu != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_MENU)) {
+                recordFailure(failureStats, "Global Toggle OFF: Menu");
+                return false;
+            }
+
+            boolean isMenuContext = !hasWorld;
+
+            if (conditions.is_menu != isMenuContext) {
+                String screenName = (mc.currentScreen != null) ? mc.currentScreen.getClass().getSimpleName() : "null";
+                recordFailure(failureStats, "Menu mismatch (Req: " + conditions.is_menu + ", Actual: " + isMenuContext + ", Screen: " + screenName + ")");
+                return false;
+            }
+        }
+
+        // --- 2. VICTORY CHECK ---
         if (conditions.victory_after_boss != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_VICTORY)) {
+                recordFailure(failureStats, "Global Toggle OFF: Victory");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Victory)");
+                return false;
+            }
             boolean active = combatTracker.isVictoryCooldownActive(worldTime);
             if (!active) {
                 recordFailure(failureStats, "Victory cooldown not active");
@@ -61,16 +75,25 @@ public class ConditionEvaluator {
             return active;
         }
 
-        // 2. Victory Cooldown Exclusion
-        if (combatTracker.isVictoryCooldownActive(worldTime)) {
+        // Victory Cooldown Exclusion
+        if (hasWorld && combatTracker.isVictoryCooldownActive(worldTime)) {
             if (conditions.is_in_combat != null || conditions.boss_type != null) {
                 recordFailure(failureStats, "Victory cooldown active (suppressing combat/boss)");
                 return false;
             }
         }
 
-        // 3. Boss Battle
+        // --- 3. BOSS CHECK ---
         if (conditions.boss_type != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_BOSS)) {
+                recordFailure(failureStats, "Global Toggle OFF: Boss");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Boss)");
+                return false;
+            }
+
             boolean isFightingBoss = false;
             List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, player.boundingBox.expand(64.0, 64.0, 64.0));
 
@@ -91,8 +114,17 @@ public class ConditionEvaluator {
             }
         }
 
-        // 4. Combat State
+        // --- 4. COMBAT CHECK ---
         if (conditions.is_in_combat != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_COMBAT)) {
+                recordFailure(failureStats, "Global Toggle OFF: Combat");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Combat)");
+                return false;
+            }
+
             boolean actualCombatState = combatTracker.isInCombat(worldTime);
             if (conditions.is_in_combat != actualCombatState) {
                 recordFailure(failureStats, "Combat state mismatch (Req: " + conditions.is_in_combat + ")");
@@ -100,8 +132,17 @@ public class ConditionEvaluator {
             }
         }
 
-        // 5. Dimension
+        // --- 5. DIMENSION CHECK ---
         if (conditions.dimension != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_DIMENSION)) {
+                recordFailure(failureStats, "Global Toggle OFF: Dimension");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Dimension)");
+                return false;
+            }
+
             int dimensionId = player.worldObj.provider.dimensionId;
             String dimensionName = (dimensionId == -1) ? "the_nether" : (dimensionId == 0) ? "overworld" : (dimensionId == 1) ? "the_end" : "unknown";
             if (!conditions.dimension.equalsIgnoreCase(dimensionName)) {
@@ -110,8 +151,17 @@ public class ConditionEvaluator {
             }
         }
 
-        // 6. Cave / Underground
+        // --- 6. CAVE CHECK ---
         if (conditions.is_in_cave != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_CAVE)) {
+                recordFailure(failureStats, "Global Toggle OFF: Cave");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Cave)");
+                return false;
+            }
+
             int configCaveY = ModConfig.getInstance().caveYLevel;
             boolean isCave = player.posY < configCaveY;
 
@@ -121,8 +171,17 @@ public class ConditionEvaluator {
             }
         }
 
-        // 7. Weather
+        // --- 7. WEATHER CHECK ---
         if (conditions.weather != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_WEATHER)) {
+                recordFailure(failureStats, "Global Toggle OFF: Weather");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Weather)");
+                return false;
+            }
+
             String currentWeather = player.worldObj.isThundering() ? "storm" : "clear";
             if (!conditions.weather.equalsIgnoreCase(currentWeather)) {
                 recordFailure(failureStats, "Weather mismatch (Req: " + conditions.weather + ")");
@@ -130,8 +189,17 @@ public class ConditionEvaluator {
             }
         }
 
-        // 8. Time of Day
+        // --- 8. TIME OF DAY CHECK ---
         if (conditions.time_of_day != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_TIME)) {
+                recordFailure(failureStats, "Global Toggle OFF: Time");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Time)");
+                return false;
+            }
+
             long time = player.worldObj.getWorldTime() % 24000;
             String timeName = (time >= 0 && time < 13000) ? "day" : "night";
             if (!conditions.time_of_day.equalsIgnoreCase(timeName)) {
@@ -140,16 +208,22 @@ public class ConditionEvaluator {
             }
         }
 
-        // 9. Biome (Smart Logic)
+        // --- 9. BIOME CHECK ---
         if (conditions.biome != null) {
-            // Requirement: Ignore rules that target rivers/beaches directly
+            if (!config.isConditionEnabled(ModConfig.COND_BIOME)) {
+                recordFailure(failureStats, "Global Toggle OFF: Biome");
+                return false;
+            }
+            if (!hasWorld) {
+                recordFailure(failureStats, "No World (Biome)");
+                return false;
+            }
+
             if (isTransparentBiome(conditions.biome)) {
                 recordFailure(failureStats, "Rule ignored (Targets transparent biome: " + conditions.biome + ")");
                 return false;
             }
 
-            // If player logged in river/beach, we have no history.
-            // Only allow non-biome specific songs (which this is NOT, since conditions.biome is not null).
             if (this.lastSignificantBiome == null) {
                 recordFailure(failureStats, "No biome history (Player in river since login)");
                 return false;
@@ -166,20 +240,14 @@ public class ConditionEvaluator {
 
     private String mapVariantToParent(String biome) {
         if (biome.endsWith("hills")) {
-            // desert_hills -> desert, forest_hills -> forest, etc.
-            // "hills" is 5 chars.
             String parent = biome.substring(0, biome.length() - 5);
-            // Handle underscore if present (e.g. desert_hills -> desert_)
             if (parent.endsWith("_")) {
                 parent = parent.substring(0, parent.length() - 1);
             }
             return parent;
         }
-
-        // Specific mapping for requested Edge and Shore cases
         if (biome.equals("extreme_hills_edge")) return "extreme_hills";
         if (biome.equals("mushroomislandshore")) return "mushroomisland";
-
         return biome;
     }
 

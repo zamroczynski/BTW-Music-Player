@@ -58,7 +58,7 @@ public class PlaylistManager {
                 if (logInterval) MusicLogger.log("[PlaylistManager] Context is stable but waiting for timer (" + (elapsed / 1000L) + "s / " + delaySeconds + "s).");
             }
         } else {
-            MusicLogger.log("[PlaylistManager] Context changed. Starting " + delaySeconds + "s timer for new playlist.");
+            MusicLogger.log("[PlaylistManager] Context changed (Priority " + newlyFoundPriority + "). Starting " + delaySeconds + "s timer.");
             this.pendingPlaylist = newlyFoundPlaylist;
             this.pendingPlaylistTimestamp = System.currentTimeMillis();
         }
@@ -77,6 +77,11 @@ public class PlaylistManager {
         this.pendingPlaylistTimestamp = 0;
 
         MusicLogger.log("[PlaylistManager] New playlist committed. Priority: " + newPriority + ", Songs: " + newPlaylist.size());
+        if (this.currentSongRule != null) {
+            MusicLogger.log("[PlaylistManager] First song in playlist: " + this.currentSongRule.file);
+        } else {
+            MusicLogger.log("[PlaylistManager] Playlist is EMPTY. Silence.");
+        }
     }
 
     private int getPriority(List<SongRule> rules) {
@@ -106,7 +111,7 @@ public class PlaylistManager {
         if (trace && failureStats != null && !failureStats.isEmpty()) {
             MusicLogger.trace("--- Skipped Songs Summary ---");
             for (Map.Entry<String, Integer> entry : failureStats.entrySet()) {
-                MusicLogger.trace("   [" + entry.getValue() + " files] skipped due to: " + entry.getKey());
+                MusicLogger.trace("   Skipped due to: " + entry.getKey() + " -> Count: " + entry.getValue());
             }
         }
 
@@ -125,8 +130,12 @@ public class PlaylistManager {
             }
         }
 
-        if (trace && !bestPlaylist.isEmpty()) {
-            MusicLogger.trace("--- Best Match Found: Priority " + bestPriority + ", Count: " + bestPlaylist.size() + " ---");
+        if (trace) {
+            if (!bestPlaylist.isEmpty()) {
+                MusicLogger.trace("--- Best Match Found: Priority " + bestPriority + ", Count: " + bestPlaylist.size() + " ---");
+            } else {
+                MusicLogger.trace("--- No Matching Rules Found (Silence) ---");
+            }
         }
 
         return bestPlaylist;

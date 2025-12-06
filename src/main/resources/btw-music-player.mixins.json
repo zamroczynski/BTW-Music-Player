@@ -12,7 +12,8 @@
     "BTWSquidEntityAccessor",
     "EntityWitherMixin",
     "EntityDragonMixin",
-    "GuiOptionsMixin"
+    "GuiOptionsMixin",
+    "MinecraftMixin"
   ],
   "injectors": {
     "defaultRequire": 1
