@@ -21,11 +21,13 @@ Players can create and install their own "Music Packs" containing music files an
   - Combat: Dedicated music for encounters with monsters, wolves, or squids.
   - Boss Battles: Unique tracks for fights against the Ender Dragon and the Wither.
   - Victory: A special theme plays after defeating a boss.
+  - Menu Music: Define tracks to play in the Main Menu, World Selection screen, and options when outside of the game world.
 - Smart Biome Logic: Biome variants (e.g., Forest Hills, Desert Hills) are automatically treated as their main biome, simplifying configuration.
 - Seamless Travel: Rivers and Beaches are considered "transparent". The music from the previous biome (e.g., Forest) continues to play while crossing a river, preventing constant music switching.
 - Advanced Validator: The mod checks if your .ogg files exist and are valid, reporting errors directly in the Music Pack selection menu.
 - Multi-Music Pack Support: Load tracks from a single, specific music pack or from all installed packs at once.
 - In-Game Configuration: Manage settings, select music packs, and open the music folder directly from the game options menu via a new gear icon.
+- Global Condition Toggles: Enable or disable specific conditions (e.g., disable all Biome music or Combat music) directly from the in-game configuration menu.
 
 ### Downloads
 - BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -84,6 +86,7 @@ You can configure the mod directly inside the game!
 
 This menu allows you to:
 - Browse and validate installed Music Packs (Green = Valid, Red = Missing files or Invalid format).
+- Manage Active Conditions: Open the Song Conditions screen to globally enable or disable specific rules (e.g., turn off all Biome checks).
 - Toggle between `ALL` (load all packs) and `SINGLE` (load one specific pack) modes.
 - Adjust the **Context Delay**, **Crossfade** (fade duration), and **Cave Depth** sliders.
 - Toggle **Debug Logging**.
@@ -183,14 +186,15 @@ The following table lists all the conditions you can use in the `conditions` sec
 
 | Condition Key     | Accepted Values                          | Description                                                                       |
 | ------------------ |-------------------------------------------------| ----------------------------------------------------------------------------- |
-| dimension          | "overworld", "the_nether", "the_end"            | Specifies the dimension the player must be in.                           |
-| biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, hell, sky, frozenocean, ice_plains, ice_mountains, mushroomisland, jungle | Specifies the biome. Note: Hills (e.g., forest_hills), edges, and shores are automatically mapped to their parent biome (use forest, desert, etc.). Rivers and Beaches are ignored to maintain the previous track and cannot be targeted directly.      |
-| time_of_day        | "day", "night"                                  | Specifies the current time of day in the game.                                       |
-| weather            | "clear", "storm"                                | Checks if the weather is calm or if there is a storm.                          |
-| is_in_cave         | true, false                                     | Checks if the player is below the configured Y level (Default: 60).                     |
-| is_in_combat       | true, false                                     | Checks if the player is currently in combat.                                   |
-| boss_type          | "wither", "ender_dragon"                        | Checks if a specific boss is nearby                          |
-| victory_after_boss | true                                            | A special condition that is true for a short time after defeating a boss. |
+| dimension          | overworld, the_nether, the_end                  | Specifies the dimension the player must be in.                                |
+| biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, hell, sky, frozenocean, ice_plains, ice_mountains, mushroomisland, jungle | Specifies the biome. Note: Hills (e.g., forest_hills), edges, and shores are automatically mapped to their parent biome (use forest, desert, etc.). Rivers and Beaches are ignored to maintain the previous track and cannot be targeted directly.                                                                                                                                     |
+| time_of_day        | day, night                                      | Specifies the current time of day in the game.                                |
+| weather            | clear, storm                                    | Checks if the weather is calm or if there is a storm.                         |
+| is_in_cave         | true, false                                     | Checks if the player is below the configured Y level (Default: 60).           |
+| is_in_combat       | true, false                                     | Checks if the player is currently in combat.                                  |
+| boss_type          | wither, ender_dragon                            | Checks if a specific boss is nearby                                           |
+| victory_after_boss | true                                            | A special condition that is true for a short time after defeating a boss.     |
+| is_menu            | true                                            | Checks if the player is in the Main Menu or any screen outside of the active world (e.g., World Selection).     |
 
 #### 5. Tips and Tools
 
@@ -225,11 +229,13 @@ Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę or
   - Walka: Dedykowana muzyka podczas starć z potworami, wilkami czy kałamarnicami.
   - Walki z Bossami: Unikalne utwory podczas walki z Ender Dragonem i Witherem.
   - Zwycięstwo: Specjalna muzyka odtwarzana po pokonaniu bossa.
+  - Muzyka w Menu: Definiuj utwory, które mają grać w Menu Głównym, ekranie wyboru świata i opcjach, gdy gracz jest poza światem gry.
 - Inteligentna Obsługa Biomów: Warianty biomów (np. Forest Hills, Desert Hills) są automatycznie traktowane jako ich główny biom, co upraszcza konfigurację.
 - Płynna Podróż: Rzeki i Plaże są "przezroczyste". Muzyka z poprzedniego biomu (np. Lasu) gra dalej podczas przekraczania rzeki, zapobiegając ciągłemu przełączaniu utworów.
 - Wsparcie dla Wielu Musicpacków: Wczytuj utwory z jednego, wybranego musicpacka lub ze wszystkich zainstalowanych jednocześnie.
 - Zaawansowany Walidator: Mod sprawdza, czy pliki .ogg fizycznie istnieją i są poprawne, zgłaszając błędy bezpośrednio w menu wyboru paczek.
 - Konfiguracja w Grze: Zarządzaj ustawieniami, wybieraj musicpacki i otwieraj folder z muzyką bezpośrednio z menu opcji gry, klikając nową ikonę zębatki.
+- Globalne Przełączniki Warunków: Włączaj lub wyłączaj całe kategorie warunków (np. wyłącz całkowicie muzykę Biomów) bezpośrednio z menu konfiguracyjnego w grze.
 
 ### Pobieranie
 - Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -288,6 +294,7 @@ Modyfikację możesz konfigurować bezpośrednio w grze!
 
 Menu to pozwala na:
 - Przeglądanie i sprawdzanie zainstalowanych Musicpacków (Zielony = Poprawny, Czerwony = Brakujące pliki lub zły format).
+- Zarządzanie Warunkami: Otwórz ekran Song Conditions, aby globalnie włączać lub wyłączać poszczególne reguły (np. wyłączanie muzyki walki).
 - Przełączanie trybu ładowania między `ALL` (wszystkie paczki) a `SINGLE` (tylko wybrana).
 - Regulację opóźnienia (**Context Delay**), czasu przejścia (**Crossfade**) oraz głębokości jaskiń (**Cave Depth**).
 - Włączenie/wyłączenie logowania błędów (**Debug Logging**).
@@ -380,14 +387,15 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 #### 4. Dostępne Warunki (Conditions)
 | Klucz warunku      | Akceptowane wartości                            | Opis                                                                          |
 | ------------------ |-------------------------------------------------|-------------------------------------------------------------------------------|
-| dimension          | "overworld", "the_nether", "the_end"            | Określa wymiar, w którym musi znajdować się gracz.                            |
+| dimension          | overworld, the_nether, the_end            | Określa wymiar, w którym musi znajdować się gracz.                            |
 | biome              | ocean, plains, desert, extreme_hills, forest, taiga, swampland, hell, sky, frozenocean, ice_plains, ice_mountains, mushroomisland, jungle | Określa biom. Uwaga: Wzgórza (np. forest_hills) i wybrzeża są automatycznie mapowane do głównego biomu (używaj forest, desert itp.). Rzeki i Plaże są ignorowane, aby podtrzymać poprzedni utwór i nie można ich ustawić jako warunek.      |
-| time_of_day        | "day", "night"                                  | Określa aktualną porę dnia w grze.                                            |
-| weather            | "clear", "storm"                                | Sprawdza, czy pogoda jest spokojna, czy jest burza.                           |
+| time_of_day        | day, night                                 | Określa aktualną porę dnia w grze.                                            |
+| weather            | clear, storm                               | Sprawdza, czy pogoda jest spokojna, czy jest burza.                           |
 | is_in_cave         | true, false                                     | Sprawdza, czy gracz znajduje się poniżej skonfigurowanego poziomu Y (Domyślnie: 60).                        |
 | is_in_combat       | true, false                                     | Sprawdza, czy gracz jest aktualnie w walce.                                   |
-| boss_type          | "wither", "ender_dragon"                        | Sprawdza, czy w pobliżu znajduje się określony boss.                          |
+| boss_type          | wither, ender_dragon                       | Sprawdza, czy w pobliżu znajduje się określony boss.                          |
 | victory_after_boss | true                                            | Specjalny warunek, który jest spełniony przez krótki czas po pokonaniu bossa. |
+| is_menu            | true                                            | Sprawdza, czy gracz znajduje się w Menu Głównym lub na ekranie poza aktywnym światem gry (np. Wybór Świata). |
 
 #### 5. Wskazówki i Narzędzia
 - **Format plików:** Upewnij się, że wszystkie Twoje pliki muzyczne są w formacie `.ogg`.
@@ -396,7 +404,7 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 - **Walidator JSON:** Jeśli gra nie wczytuje Twojego musicpacka, upewnij się, że plik `songs.json` nie ma błędów składni. Możesz go sprawdzić wklejając jego treść do internetowego walidatora JSON.
 - **Zarządzanie Dużymi Musicpackami (CSV to JSON):**  
   Jeśli planujesz dodać dziesiątki lub setki utworów, ręczne edytowanie pliku `songs.json`staje się niewygodne. W takim przypadku możesz przygotować prosty arkusz kalkulacyjny z kolumnami w następującej kolejności:  
-  `file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss`
+  `file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss, is_menu`
   Zapisz arkusz jako plik `.csv`, a następnie użyj mojego pomocniczego narzędzia, które automatycznie zamieni go na gotowy do użycia plik `songs.json`.
     - **Pobierz narzędzie:** [BTW Music Player CSV to JSON](https://github.com/zamroczynski/BTW-Music-Player-CSV-to-JSON)
     - Szczegółowe instrukcje, jak używać narzędzia, znajdziesz w jego repozytorium.
