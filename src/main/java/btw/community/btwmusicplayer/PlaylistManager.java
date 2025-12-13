@@ -172,4 +172,13 @@ public class PlaylistManager {
         if (list1.size() != list2.size()) return false;
         return new HashSet<>(list1).equals(new HashSet<>(list2));
     }
+
+    public void forceReset() {
+        this.pendingPlaylist = null;
+        this.pendingPlaylistTimestamp = 0;
+        this.currentPlaylist.clear();
+        this.currentSongRule = null;
+        this.currentPriority = -1;
+        MusicLogger.log("[PlaylistManager] Forced reset of playlist state.");
+    }
 }

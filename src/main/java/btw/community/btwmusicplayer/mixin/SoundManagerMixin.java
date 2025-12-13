@@ -29,6 +29,8 @@ public abstract class SoundManagerMixin {
     private PlaylistManager playlistManager;
     private PlaybackStateMachine playbackStateMachine;
 
+    private int lastDimensionId = Integer.MIN_VALUE;
+
     private void initializeComponents() {
         if (this.combatTracker == null) {
             this.combatTracker = new MusicCombatTracker();
@@ -112,12 +114,27 @@ public abstract class SoundManagerMixin {
         }
 
         // 4. Update game state trackers
+        if (mc.thePlayer != null) {
+            int currentDim = mc.thePlayer.dimension;
+            if (currentDim != lastDimensionId) {
+                MusicLogger.always("[SoundManager] Dimension change detected: " + lastDimensionId + " -> " + currentDim);
+
+                if (lastDimensionId != Integer.MIN_VALUE) {
+                    this.combatTracker.resetState();
+                    this.playlistManager.forceReset();
+                }
+
+                lastDimensionId = currentDim;
+            }
+        }
+
+        // 5. Update game state trackers
         combatTracker.update(mc, btwmusicplayerAddon.getMusicContext());
 
-        // 5. Determine the correct playlist
+        // 6. Determine the correct playlist
         playlistManager.update(conditionEvaluator, combatTracker, mc, shouldLog);
 
-        // 6. Handle song playback logic
+        // 7. Handle song playback logic
         if (playbackStateMachine != null
                 && playbackStateMachine.getState() == MusicState.PLAYING
                 && !this.sndSystem.playing("BgMusic")) {

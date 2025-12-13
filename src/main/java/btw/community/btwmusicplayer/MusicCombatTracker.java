@@ -15,24 +15,45 @@ public class MusicCombatTracker {
     private static final int BOSS_PRESENCE_RANGE = 64;
     private static final long COMBAT_TIMEOUT_TICKS = 100; // 5 seconds
     private static final long VICTORY_COOLDOWN_TICKS = 500; // 25 seconds
+    private static final int DIMENSION_CHANGE_GRACE_TICKS = 100; // 5 seconds of safety after portal
 
     private long lastCombatEventTick = -1;
     private long victoryCooldownEndTick = -1;
     private boolean hasLoggedCooldownEnd = true;
 
+    private int gracePeriodTicks = 0;
+
     public MusicCombatTracker() {
         MusicLogger.log("[MusicCombatTracker] Initialized and ready.");
+    }
+
+    /**
+     * Resets internal state. Called when changing dimensions or reloading config.
+     */
+    public void resetState() {
+        this.lastCombatEventTick = -1;
+        this.victoryCooldownEndTick = -1;
+        this.hasLoggedCooldownEnd = true;
+        this.gracePeriodTicks = DIMENSION_CHANGE_GRACE_TICKS;
+        MusicLogger.log("[MusicCombatTracker] State reset. Grace period enabled for " + DIMENSION_CHANGE_GRACE_TICKS + " ticks.");
     }
 
     public void update(Minecraft mc, MusicContext musicContext) {
         EntityClientPlayerMP player = mc.thePlayer;
         if (player == null || player.worldObj == null) return;
 
+        if (this.gracePeriodTicks > 0) {
+            this.gracePeriodTicks--;
+            musicContext.consumeAttackSignal();
+            musicContext.consumeVictorySignal();
+            return;
+        }
+
         long worldTime = mc.theWorld.getTotalWorldTime();
 
         // Check for victory signal first
         if (musicContext.consumeVictorySignal()) {
-            MusicLogger.log("[CombatTracker] Victory signal received. Starting cooldown.");
+            MusicLogger.log("[MusicCombatTracker] Victory signal received. Starting cooldown.");
             this.victoryCooldownEndTick = worldTime + VICTORY_COOLDOWN_TICKS;
             this.lastCombatEventTick = -1; // End combat immediately
             this.hasLoggedCooldownEnd = false;
@@ -46,7 +67,7 @@ public class MusicCombatTracker {
         }
 
         if (!hasLoggedCooldownEnd) {
-            MusicLogger.log("[CombatTracker] Victory cooldown complete. Resuming normal checks.");
+            MusicLogger.log("[MusicCombatTracker] Victory cooldown complete. Resuming normal checks.");
             hasLoggedCooldownEnd = true;
         }
 
@@ -80,7 +101,7 @@ public class MusicCombatTracker {
 
         if (combatEventDetected) {
             if (lastCombatEventTick < worldTime - 5) {
-                MusicLogger.log("[CombatTracker] Combat event detected. Reason: " + reason);
+                MusicLogger.log("[MusicCombatTracker] Combat event detected. Reason: " + reason);
             }
             lastCombatEventTick = worldTime;
         }
@@ -88,6 +109,10 @@ public class MusicCombatTracker {
 
     public boolean isInCombat(long worldTime) {
         if (lastCombatEventTick <= 0) return false;
+        if (worldTime < lastCombatEventTick) {
+            lastCombatEventTick = worldTime;
+            return false;
+        }
         return (worldTime - lastCombatEventTick) < COMBAT_TIMEOUT_TICKS;
     }
 
