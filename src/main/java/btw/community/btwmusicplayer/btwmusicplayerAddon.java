@@ -18,6 +18,8 @@ public class btwmusicplayerAddon extends BTWAddon {
 
         MusicManager.load();
 
+        this.registerAddonCommand(new CommandMusicDebug());
+
         MusicLogger.always("BTW Music Player Addon initialized successfully.");
     }
 

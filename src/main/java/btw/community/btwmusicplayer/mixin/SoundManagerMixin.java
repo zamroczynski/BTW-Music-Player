@@ -35,7 +35,8 @@ public abstract class SoundManagerMixin {
             this.conditionEvaluator = new ConditionEvaluator();
             this.playlistManager = new PlaylistManager();
             this.playbackStateMachine = new PlaybackStateMachine(this.options);
-            MusicLogger.always("[SoundManager] Music Player components initialized.");
+            btwmusicplayerAddon.getMusicContext().registerComponents(this.combatTracker, this.playlistManager, this.conditionEvaluator);
+            MusicLogger.always("[SoundManager] Music Player components initialized and registered.");
         }
     }
 
