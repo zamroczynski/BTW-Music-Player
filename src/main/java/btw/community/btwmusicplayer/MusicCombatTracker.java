@@ -10,7 +10,7 @@ import java.util.List;
  * It tracks player-initiated attacks, threats, and boss battles to determine if combat music should play.
  * It also handles the post-boss-fight victory cooldown.
  */
-public class CombatTracker {
+public class MusicCombatTracker {
     private static final int COMBAT_THREAT_RANGE = 16;
     private static final int BOSS_PRESENCE_RANGE = 64;
     private static final long COMBAT_TIMEOUT_TICKS = 100; // 5 seconds
@@ -19,6 +19,10 @@ public class CombatTracker {
     private long lastCombatEventTick = -1;
     private long victoryCooldownEndTick = -1;
     private boolean hasLoggedCooldownEnd = true;
+
+    public MusicCombatTracker() {
+        MusicLogger.log("[MusicCombatTracker] Initialized and ready.");
+    }
 
     public void update(Minecraft mc, MusicContext musicContext) {
         EntityClientPlayerMP player = mc.thePlayer;

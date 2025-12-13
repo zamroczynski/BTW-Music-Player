@@ -16,7 +16,7 @@ public class PlaylistManager {
     private List<SongRule> pendingPlaylist = null;
     private long pendingPlaylistTimestamp = 0;
 
-    public void update(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean logInterval) {
+    public void update(ConditionEvaluator evaluator, MusicCombatTracker combatTracker, Minecraft mc, boolean logInterval) {
         boolean shouldTrace = ModConfig.getInstance().enableDebugLogging && logInterval;
 
         evaluator.updateBiomeState(mc, shouldTrace);
@@ -96,7 +96,7 @@ public class PlaylistManager {
         return highestPriority;
     }
 
-    private List<SongRule> findBestMatchingRules(ConditionEvaluator evaluator, CombatTracker combatTracker, Minecraft mc, boolean trace) {
+    private List<SongRule> findBestMatchingRules(ConditionEvaluator evaluator, MusicCombatTracker combatTracker, Minecraft mc, boolean trace) {
         List<SongRule> potentialRules = new ArrayList<>();
         Map<String, Integer> failureStats = trace ? new HashMap<>() : null;
 

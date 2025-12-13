@@ -1,7 +1,7 @@
 package btw.community.btwmusicplayer.mixin;
 
 import btw.community.btwmusicplayer.*;
-import btw.community.btwmusicplayer.CombatTracker;
+import btw.community.btwmusicplayer.MusicCombatTracker;
 import btw.community.btwmusicplayer.data.SongRule;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,14 +24,14 @@ public abstract class SoundManagerMixin {
 
     private static boolean hasLoggedInitFailure = false;
 
-    private CombatTracker combatTracker;
+    private MusicCombatTracker combatTracker;
     private ConditionEvaluator conditionEvaluator;
     private PlaylistManager playlistManager;
     private PlaybackStateMachine playbackStateMachine;
 
     private void initializeComponents() {
         if (this.combatTracker == null) {
-            this.combatTracker = new CombatTracker();
+            this.combatTracker = new MusicCombatTracker();
             this.conditionEvaluator = new ConditionEvaluator();
             this.playlistManager = new PlaylistManager();
             this.playbackStateMachine = new PlaybackStateMachine(this.options);

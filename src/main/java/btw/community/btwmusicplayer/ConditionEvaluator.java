@@ -36,7 +36,7 @@ public class ConditionEvaluator {
         }
     }
 
-    public boolean check(SongConditions conditions, Minecraft mc, CombatTracker combatTracker, Map<String, Integer> failureStats) {
+    public boolean check(SongConditions conditions, Minecraft mc, MusicCombatTracker combatTracker, Map<String, Integer> failureStats) {
         ModConfig config = ModConfig.getInstance();
         EntityClientPlayerMP player = mc.thePlayer;
         boolean hasWorld = (player != null && player.worldObj != null);
