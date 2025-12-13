@@ -105,6 +105,9 @@ public class PlaylistManager {
         for (SongRule rule : MusicManager.getSongRules()) {
             if (evaluator.check(rule.conditions, mc, combatTracker, failureStats)) {
                 potentialRules.add(rule);
+                if (trace) {
+                    MusicLogger.trace("   [MATCH] Rule accepted: " + rule.file + " (Prio: " + rule.priority + ")");
+                }
             }
         }
 
