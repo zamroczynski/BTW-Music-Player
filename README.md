@@ -28,6 +28,7 @@ Players can create and install their own "Music Packs" containing music files an
 - Multi-Music Pack Support: Load tracks from a single, specific music pack or from all installed packs at once.
 - In-Game Configuration: Manage settings, select music packs, and open the music folder directly from the game options menu via a new gear icon.
 - Global Condition Toggles: Enable or disable specific conditions (e.g., disable all Biome music or Combat music) directly from the in-game configuration menu.
+- Diagnostics Commands: Use `/bmp debug` to view the current music state (biome, combat, song priority) in real-time, and `/bmp reload` to reload configuration and music packs without restarting the game.
 
 ### Downloads
 - BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -199,7 +200,8 @@ The following table lists all the conditions you can use in the `conditions` sec
 #### 5. Tips and Tools
 
 - File Format: Ensure all your music files are in the .ogg format.
-- Use Logs: In the config file, `enable enable_debug_logging=true`. The game console will show what the mod is trying to do, which makes it easier to find errors.
+- Use Diagnostics: You can use the in-game command `/bmp debug` to see exactly why a specific song is playing (or why it isn't). It displays the current biome, combat status, and active song priority.
+- Use Logs: For deeper analysis, enable `enable_debug_logging=true` in the config. The game console will show detailed traces of what the mod is trying to do.
 - JSON Validator: If the game isn't loading your music pack, make sure your songs.json file is free of syntax errors. You can check it by pasting its content into an online JSON validator.
 - Managing Large Music Packs (CSV to JSON):
 If you plan to add dozens or hundreds of tracks, editing the `songs.json` file by hand becomes tedious. In this case, you can prepare a simple spreadsheet with columns in the following order:
@@ -236,6 +238,7 @@ Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę or
 - Zaawansowany Walidator: Mod sprawdza, czy pliki .ogg fizycznie istnieją i są poprawne, zgłaszając błędy bezpośrednio w menu wyboru paczek.
 - Konfiguracja w Grze: Zarządzaj ustawieniami, wybieraj musicpacki i otwieraj folder z muzyką bezpośrednio z menu opcji gry, klikając nową ikonę zębatki.
 - Globalne Przełączniki Warunków: Włączaj lub wyłączaj całe kategorie warunków (np. wyłącz całkowicie muzykę Biomów) bezpośrednio z menu konfiguracyjnego w grze.
+- Komendy Diagnostyczne: Użyj `/bmp debug`, aby sprawdzić w czasie rzeczywistym stan muzyki (biom, walka, priorytet), oraz `/bmp reload`, aby przeładować konfigurację i musicpacki bez restartowania gry.
 
 ### Pobieranie
 - Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -399,8 +402,8 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 
 #### 5. Wskazówki i Narzędzia
 - **Format plików:** Upewnij się, że wszystkie Twoje pliki muzyczne są w formacie `.ogg`.
-- **Użyj logów:** W pliku konfiguracyjnym włącz `enable_debug_logging=true`. W konsoli gry zobaczysz, co modyfikacja próbuje zrobić, co ułatwi znajdowanie błędów.
-
+- Diagnostyka w grze: Możesz użyć komendy `/bmp debug`, aby zobaczyć, dlaczego gra dany utwór. Wyświetli ona aktualny biom, status walki oraz priorytet aktywnej piosenki.
+- Użyj logów: Do głębszej analizy włącz `enable_debug_logging=true` w konfiguracji. W konsoli gry zobaczysz szczegółowe informacje o tym, co modyfikacja próbuje zrobić.
 - **Walidator JSON:** Jeśli gra nie wczytuje Twojego musicpacka, upewnij się, że plik `songs.json` nie ma błędów składni. Możesz go sprawdzić wklejając jego treść do internetowego walidatora JSON.
 - **Zarządzanie Dużymi Musicpackami (CSV to JSON):**  
   Jeśli planujesz dodać dziesiątki lub setki utworów, ręczne edytowanie pliku `songs.json`staje się niewygodne. W takim przypadku możesz przygotować prosty arkusz kalkulacyjny z kolumnami w następującej kolejności:  
