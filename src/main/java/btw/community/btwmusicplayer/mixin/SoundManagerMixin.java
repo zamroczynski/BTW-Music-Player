@@ -21,7 +21,6 @@ public abstract class SoundManagerMixin {
     private static final int DEBUG_LOG_INTERVAL_TICKS = 100;
     private static int tickCounter = 0;
     private String lastScreenName = "";
-
     private static boolean hasLoggedInitFailure = false;
 
     private MusicCombatTracker combatTracker;
@@ -30,6 +29,7 @@ public abstract class SoundManagerMixin {
     private PlaybackStateMachine playbackStateMachine;
 
     private int lastDimensionId = Integer.MIN_VALUE;
+    private boolean wasJukeboxPlaying = false;
 
     private void initializeComponents() {
         if (this.combatTracker == null) {
@@ -68,7 +68,7 @@ public abstract class SoundManagerMixin {
 
         if (this.options.musicVolume == 0.0f) {
             if (tickCounter % 200 == 0) {
-                 MusicLogger.trace("[SoundManager] Skipping: Music Volume is 0.");
+                MusicLogger.trace("[SoundManager] Skipping: Music Volume is 0.");
             }
             return;
         }
@@ -79,11 +79,38 @@ public abstract class SoundManagerMixin {
         }
 
         initializeComponents();
-
         tickCounter++;
         boolean shouldLog = tickCounter % DEBUG_LOG_INTERVAL_TICKS == 0;
-
         Minecraft mc = Minecraft.getMinecraft();
+
+        boolean isJukeboxPlaying = this.sndSystem.playing("streaming");
+
+        if (isJukeboxPlaying) {
+            if (!wasJukeboxPlaying) {
+                MusicLogger.always("[SoundManager] Jukebox detected! Suppressing BTW Music Player.");
+                wasJukeboxPlaying = true;
+            }
+
+            if (playbackStateMachine != null) {
+                if (shouldLog) {
+                    MusicLogger.trace("[SoundManager] Jukebox active. Forcing silence.");
+                }
+                playbackStateMachine.update(null, this.sndSystem, shouldLog);
+            }
+
+            return;
+
+        } else {
+            if (wasJukeboxPlaying) {
+                MusicLogger.always("[SoundManager] Jukebox stopped/finished. Resuming BTW Music Player logic.");
+                wasJukeboxPlaying = false;
+
+                if (playlistManager != null) {
+                    playlistManager.forceReset();
+                    MusicLogger.log("[SoundManager] Playlist state reset after Jukebox.");
+                }
+            }
+        }
 
         // 3. Screen Detection
         String currentScreenName = "null";
@@ -101,7 +128,6 @@ public abstract class SoundManagerMixin {
             MusicLogger.always("[SoundManager] Screen transition: " + lastScreenName + " -> " + currentScreenName);
             lastScreenName = currentScreenName;
             shouldLog = true;
-
             if (mc.currentScreen instanceof GuiMainMenu) {
                 MusicLogger.always("[SoundManager] Detected GuiMainMenu instance.");
             }
@@ -113,22 +139,20 @@ public abstract class SoundManagerMixin {
                     ", State: " + (playbackStateMachine != null ? playbackStateMachine.getState() : "N/A"));
         }
 
-        // 4. Update game state trackers
+        // 4. Update game state trackers (Dimension)
         if (mc.thePlayer != null) {
             int currentDim = mc.thePlayer.dimension;
             if (currentDim != lastDimensionId) {
                 MusicLogger.always("[SoundManager] Dimension change detected: " + lastDimensionId + " -> " + currentDim);
-
                 if (lastDimensionId != Integer.MIN_VALUE) {
                     this.combatTracker.resetState();
                     this.playlistManager.forceReset();
                 }
-
                 lastDimensionId = currentDim;
             }
         }
 
-        // 5. Update game state trackers
+        // 5. Update game state trackers (Combat)
         combatTracker.update(mc, btwmusicplayerAddon.getMusicContext());
 
         // 6. Determine the correct playlist
