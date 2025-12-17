@@ -22,6 +22,7 @@ Players can create and install their own "Music Packs" containing music files an
   - Boss Battles: Unique tracks for fights against the Ender Dragon and the Wither.
   - Victory: A special theme plays after defeating a boss.
   - Menu Music: Define tracks to play in the Main Menu, World Selection screen, and options when outside of the game world.
+  - Low Health Overlay: A heartbeat sound effect (or any other sound) plays simultaneously with the background music when the player's health drops to 5 hearts or below.
 - Smart Biome Logic: Biome variants (e.g., Forest Hills, Desert Hills) are automatically treated as their main biome, simplifying configuration.
 - Seamless Travel: Rivers and Beaches are considered "transparent". The music from the previous biome (e.g., Forest) continues to play while crossing a river, preventing constant music switching.
 - Advanced Validator: The mod checks if your .ogg files exist and are valid, reporting errors directly in the Music Pack selection menu.
@@ -196,6 +197,7 @@ The following table lists all the conditions you can use in the `conditions` sec
 | boss_type          | wither, ender_dragon                            | Checks if a specific boss is nearby                                           |
 | victory_after_boss | true                                            | A special condition that is true for a short time after defeating a boss.     |
 | is_menu            | true                                            | Checks if the player is in the Main Menu or any screen outside of the active world (e.g., World Selection).     |
+| is_low_health      | true, false                                     | Checks if the player has 5 hearts (10 HP) or less. This tracks plays as an overlay on top of current music.   |
 
 #### 5. Tips and Tools
 
@@ -205,7 +207,7 @@ The following table lists all the conditions you can use in the `conditions` sec
 - JSON Validator: If the game isn't loading your music pack, make sure your songs.json file is free of syntax errors. You can check it by pasting its content into an online JSON validator.
 - Managing Large Music Packs (CSV to JSON):
 If you plan to add dozens or hundreds of tracks, editing the `songs.json` file by hand becomes tedious. In this case, you can prepare a simple spreadsheet with columns in the following order:
-`file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss`
+`file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss,is_menu,is_low_health`
 
 Save the spreadsheet as a `.csv` file, and then use my helper tool, which will automatically convert it into a ready-to-use `songs.json` file.
 - Download the tool: [BTW Music Player CSV to JSON](https://github.com/zamroczynski/BTW-Music-Player-CSV-to-JSON)
@@ -232,6 +234,7 @@ Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę or
   - Walki z Bossami: Unikalne utwory podczas walki z Ender Dragonem i Witherem.
   - Zwycięstwo: Specjalna muzyka odtwarzana po pokonaniu bossa.
   - Muzyka w Menu: Definiuj utwory, które mają grać w Menu Głównym, ekranie wyboru świata i opcjach, gdy gracz jest poza światem gry.
+  - Nakładka Bicia Serca: Dźwięk (np. bicia serca) jest odtwarzany równocześnie z muzyką tła, gdy zdrowie gracza spadnie do 5 serc lub mniej.
 - Inteligentna Obsługa Biomów: Warianty biomów (np. Forest Hills, Desert Hills) są automatycznie traktowane jako ich główny biom, co upraszcza konfigurację.
 - Płynna Podróż: Rzeki i Plaże są "przezroczyste". Muzyka z poprzedniego biomu (np. Lasu) gra dalej podczas przekraczania rzeki, zapobiegając ciągłemu przełączaniu utworów.
 - Wsparcie dla Wielu Musicpacków: Wczytuj utwory z jednego, wybranego musicpacka lub ze wszystkich zainstalowanych jednocześnie.
@@ -399,6 +402,7 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 | boss_type          | wither, ender_dragon                       | Sprawdza, czy w pobliżu znajduje się określony boss.                          |
 | victory_after_boss | true                                            | Specjalny warunek, który jest spełniony przez krótki czas po pokonaniu bossa. |
 | is_menu            | true                                            | Sprawdza, czy gracz znajduje się w Menu Głównym lub na ekranie poza aktywnym światem gry (np. Wybór Świata). |
+| is_low_health      | true, false                                     | Sprawdza, czy gracz ma 5 serc (10 HP) lub mniej. Dźwięk gra jako nakładka (overlay) na obecną muzykę.        |
 
 #### 5. Wskazówki i Narzędzia
 - **Format plików:** Upewnij się, że wszystkie Twoje pliki muzyczne są w formacie `.ogg`.
@@ -407,7 +411,7 @@ Priorytet decyduje, która playlista ma pierwszeństwo, jeśli w danym momencie 
 - **Walidator JSON:** Jeśli gra nie wczytuje Twojego musicpacka, upewnij się, że plik `songs.json` nie ma błędów składni. Możesz go sprawdzić wklejając jego treść do internetowego walidatora JSON.
 - **Zarządzanie Dużymi Musicpackami (CSV to JSON):**  
   Jeśli planujesz dodać dziesiątki lub setki utworów, ręczne edytowanie pliku `songs.json`staje się niewygodne. W takim przypadku możesz przygotować prosty arkusz kalkulacyjny z kolumnami w następującej kolejności:  
-  `file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss, is_menu`
+  `file,priority,dimension,biome,time_of_day,is_in_combat,weather,is_in_cave,boss_type,victory_after_boss,is_menu,is_low_health`
   Zapisz arkusz jako plik `.csv`, a następnie użyj mojego pomocniczego narzędzia, które automatycznie zamieni go na gotowy do użycia plik `songs.json`.
     - **Pobierz narzędzie:** [BTW Music Player CSV to JSON](https://github.com/zamroczynski/BTW-Music-Player-CSV-to-JSON)
     - Szczegółowe instrukcje, jak używać narzędzia, znajdziesz w jego repozytorium.

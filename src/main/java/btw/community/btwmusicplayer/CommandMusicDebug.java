@@ -66,7 +66,15 @@ public class CommandMusicDebug implements ICommand {
         String combatState = inCombat ? "§cCOMBAT" : (victory ? "§bVICTORY" : "§7CALM");
         sender.sendChatToPlayer(ChatMessageComponent.createFromText("§eState: " + combatState));
 
-        // 3. Environment (Requires Player)
+        // 3. Overlay State (NEW)
+        OverlayManager overlayMgr = ctx.getOverlayManager();
+        if (overlayMgr != null) {
+            SongRule overlayRule = overlayMgr.getCurrentOverlayRule();
+            String ovName = (overlayRule != null) ? "§c" + overlayRule.file : "§7None";
+            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§eOverlay: " + ovName));
+        }
+
+        // 4. Environment (Requires Player)
         if (player != null) {
             String rawBiome = player.worldObj.getBiomeGenForCoords((int)player.posX, (int)player.posZ).biomeName;
             sender.sendChatToPlayer(ChatMessageComponent.createFromText("§eBiome (Raw): §f" + rawBiome));
@@ -75,6 +83,8 @@ public class CommandMusicDebug implements ICommand {
             String time = (player.worldObj.getWorldTime() % 24000 < 13000) ? "Day" : "Night";
             int y = (int) player.posY;
             sender.sendChatToPlayer(ChatMessageComponent.createFromText("§eCtx: §f" + dim + ", " + time + ", Y=" + y));
+            String hpColor = (player.getHealth() <= 10.0f) ? "§c" : "§a";
+            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§eHealth: " + hpColor + player.getHealth() + "/20.0"));
         }
     }
 

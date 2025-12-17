@@ -28,10 +28,11 @@ public class ModConfig {
     public static final String COND_BOSS = "boss_type";
     public static final String COND_VICTORY = "victory_after_boss";
     public static final String COND_MENU = "is_menu";
+    public static final String COND_LOW_HEALTH = "is_low_health";
 
     public static final String[] ALL_CONDITIONS = {
             COND_DIMENSION, COND_BIOME, COND_TIME, COND_COMBAT,
-            COND_WEATHER, COND_CAVE, COND_BOSS, COND_VICTORY, COND_MENU
+            COND_WEATHER, COND_CAVE, COND_BOSS, COND_VICTORY, COND_MENU, COND_LOW_HEALTH
     };
 
     public String loadingMode = DEFAULT_LOADING_MODE;

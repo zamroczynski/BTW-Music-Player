@@ -235,6 +235,26 @@ public class ConditionEvaluator {
             }
         }
 
+        // --- 10. LOW HEALTH CHECK (Overlay Condition) ---
+        if (conditions.is_low_health != null) {
+            if (!config.isConditionEnabled(ModConfig.COND_LOW_HEALTH)) {
+                return false;
+            }
+            if (!hasWorld) {
+                return false;
+            }
+
+            float currentHealth = player.getHealth();
+            boolean isPlayerLowHealth = currentHealth <= 10.0f && currentHealth > 0.0f;
+
+            if (conditions.is_low_health != isPlayerLowHealth) {
+                 recordFailure(failureStats, "Health mismatch (Req: " + conditions.is_low_health + ", Actual: " + isPlayerLowHealth + ", HP: " + currentHealth + ")");
+                return false;
+            } else {
+                 MusicLogger.trace("Health Condition Match: HP=" + currentHealth);
+            }
+        }
+
         return true;
     }
 

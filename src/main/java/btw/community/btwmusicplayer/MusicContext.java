@@ -10,11 +10,13 @@ public class MusicContext {
     private MusicCombatTracker combatTracker;
     private PlaylistManager playlistManager;
     private ConditionEvaluator conditionEvaluator;
+    private OverlayManager overlayManager;
 
-    public void registerComponents(MusicCombatTracker combatTracker, PlaylistManager playlistManager, ConditionEvaluator conditionEvaluator) {
+    public void registerComponents(MusicCombatTracker combatTracker, PlaylistManager playlistManager, ConditionEvaluator conditionEvaluator, OverlayManager overlayManager) {
         this.combatTracker = combatTracker;
         this.playlistManager = playlistManager;
         this.conditionEvaluator = conditionEvaluator;
+        this.overlayManager = overlayManager;
         MusicLogger.log("[MusicContext] Components registered for access.");
     }
 
@@ -52,5 +54,13 @@ public class MusicContext {
             return true;
         }
         return false;
+    }
+
+    public void registerComponents(MusicCombatTracker combatTracker, PlaylistManager playlistManager, ConditionEvaluator conditionEvaluator) {
+        this.registerComponents(combatTracker, playlistManager, conditionEvaluator, null);
+    }
+
+    public OverlayManager getOverlayManager() {
+        return overlayManager;
     }
 }

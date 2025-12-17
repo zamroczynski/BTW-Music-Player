@@ -10,4 +10,5 @@ public class SongConditions {
     public String boss_type;
     public String victory_after_boss;
     public Boolean is_menu;
+    public Boolean is_low_health;
 }

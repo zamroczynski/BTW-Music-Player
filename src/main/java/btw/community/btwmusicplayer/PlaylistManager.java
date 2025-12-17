@@ -100,9 +100,14 @@ public class PlaylistManager {
         List<SongRule> potentialRules = new ArrayList<>();
         Map<String, Integer> failureStats = trace ? new HashMap<>() : null;
 
-        if (trace) MusicLogger.trace("--- Evaluating Rules ---");
+        if (trace) MusicLogger.trace("--- Evaluating Rules (Background) ---");
 
         for (SongRule rule : MusicManager.getSongRules()) {
+            if (rule.isOverlayRule()) {
+                if (trace) MusicLogger.trace("   [SKIP] Rule " + rule.file + " is an Overlay rule.");
+                continue;
+            }
+
             if (evaluator.check(rule.conditions, mc, combatTracker, failureStats)) {
                 potentialRules.add(rule);
                 if (trace) {
