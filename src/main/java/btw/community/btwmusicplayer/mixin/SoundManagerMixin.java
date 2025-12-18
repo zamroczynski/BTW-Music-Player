@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import paulscode.sound.SoundSystem;
 
 @Mixin(SoundManager.class)
-public abstract class SoundManagerMixin {
+public abstract class SoundManagerMixin implements MusicManager.MusicSoundManager {
 
     @Shadow private SoundSystem sndSystem;
     @Shadow private GameSettings options;
@@ -33,6 +33,7 @@ public abstract class SoundManagerMixin {
 
     private OverlayManager overlayManager;
     private OverlayStateMachine overlayStateMachine;
+    private MusicNotificationRenderer notificationRenderer;
 
     private void initializeComponents() {
         if (this.combatTracker == null) {
@@ -42,7 +43,15 @@ public abstract class SoundManagerMixin {
             this.playbackStateMachine = new PlaybackStateMachine(this.options);
             this.overlayManager = new OverlayManager();
             this.overlayStateMachine = new OverlayStateMachine(this.options);
-            btwmusicplayerAddon.getMusicContext().registerComponents(this.combatTracker, this.playlistManager, this.conditionEvaluator, this.overlayManager);
+            MusicNotificationManager notificationManager = new MusicNotificationManager();
+            this.notificationRenderer = new MusicNotificationRenderer(Minecraft.getMinecraft());
+            btwmusicplayerAddon.getMusicContext().registerComponents(
+                    this.combatTracker,
+                    this.playlistManager,
+                    this.conditionEvaluator,
+                    this.overlayManager,
+                    notificationManager
+            );
             MusicLogger.always("[SoundManager] Music Player components initialized and registered.");
         }
     }
@@ -120,5 +129,10 @@ public abstract class SoundManagerMixin {
                 overlayStateMachine.update(targetOverlay, this.sndSystem, shouldLog);
             }
         }
+    }
+
+    @Override
+    public MusicNotificationRenderer getNotificationRenderer() {
+        return this.notificationRenderer;
     }
 }

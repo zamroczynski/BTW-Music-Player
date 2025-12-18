@@ -30,6 +30,8 @@ Players can create and install their own "Music Packs" containing music files an
 - In-Game Configuration: Manage settings, select music packs, and open the music folder directly from the game options menu via a new gear icon.
 - Global Condition Toggles: Enable or disable specific conditions (e.g., disable all Biome music or Combat music) directly from the in-game configuration menu.
 - Diagnostics Commands: Use `/bmp debug` to view the current music state (biome, combat, song priority) in real-time, and `/bmp reload` to reload configuration and music packs without restarting the game.
+- Now Playing Notifications: A stylish pop-up appears on the right side of the screen when a new song starts, displaying the track title and the name of the Music Pack.
+- Custom Song Titles: You can now define a custom display title for each song in the `songs.json` file.
 
 ### Downloads
 - BTW Music Player Mod: [Download Latest Release](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -126,6 +128,9 @@ Alternatively, you can edit the configuration file manually at `.minecraft/confi
     - **Description:** Specifies the Y coordinate (height) below which the game considers the player to be in a "cave". This affects the `is_in_cave` condition.
     - **Values:**
       - `60` (default) - Standard sea level/underground start.
+- `show_notifications`
+    - **Description:** Determines whether the "Now Playing" pop-up should appear when the music changes.
+    - **Values:** `true` (default), `false`.
 ### Creating Your Own Music Pack
 Anyone can create their own music pack! The process involves preparing your music files in `.ogg` format and defining playback rules in a special file called `songs.json`.
 
@@ -149,9 +154,10 @@ musicpacks/
 ```
 
 #### 2. The `songs.json` File
-This is the heart of your music pack. It's a text file containing a list of "rules" that tell the mod when to play a specific track. Each rule consists of three parts:
+This is the heart of your music pack. It's a text file containing a list of "rules" that tell the mod when to play a specific track. Each rule consists of four parts:
 
 - `file`: The path to the music file.
+- `title` (Optional): The display name of the song shown in notifications.
 - `priority`: A number that determines how important the track is.
 - `conditions`: A set of conditions that must be met for the track to be played.
 
@@ -160,6 +166,7 @@ Here is an example `songs.json` file with two rules:
 [
   {
     "file": "ambient/day_forest.ogg",
+    "title": "Spirit of the Woods",
     "priority": 10,
     "conditions": {
       "dimension": "overworld",
@@ -242,6 +249,8 @@ Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę or
 - Konfiguracja w Grze: Zarządzaj ustawieniami, wybieraj musicpacki i otwieraj folder z muzyką bezpośrednio z menu opcji gry, klikając nową ikonę zębatki.
 - Globalne Przełączniki Warunków: Włączaj lub wyłączaj całe kategorie warunków (np. wyłącz całkowicie muzykę Biomów) bezpośrednio z menu konfiguracyjnego w grze.
 - Komendy Diagnostyczne: Użyj `/bmp debug`, aby sprawdzić w czasie rzeczywistym stan muzyki (biom, walka, priorytet), oraz `/bmp reload`, aby przeładować konfigurację i musicpacki bez restartowania gry.
+- Powiadomienia "Teraz odtwarzane": Estetyczne okienko pojawia się po prawej stronie ekranu w momencie rozpoczęcia nowej piosenki, wyświetlając jej tytuł oraz nazwę Music Packa.
+- Własne Tytuły Utworów: Możesz teraz zdefiniować własną nazwę wyświetlaną dla każdego utworu w pliku `songs.json`.
 
 ### Pobieranie
 - Modyfikacja BTW Music Player: [Pobierz najnowszą wersję](https://github.com/zamroczynski/BTW-Music-Player/releases)
@@ -338,6 +347,9 @@ Alternatywnie, możesz edytować plik konfiguracyjny ręcznie w `.minecraft/conf
   - **Opis:** Określa wysokość (współrzędna Y), poniżej której gra uznaje, że gracz znajduje się w jaskini. Wpływa na warunek `is_in_cave`.
   - **Wartość:**
     - `60` (domyślna) - Standardowy poziom morza/wejścia pod ziemię.
+- `show_notifications`
+  - **Opis:** Określa, czy powiadomienie "Teraz odtwarzane" ma pojawiać się przy zmianie utworu.
+  - **Wartość:** `true` (domyślna), `false`.
 ### Tworzenie Własnego Musicpacka
 Każdy może stworzyć własny musicpack! Proces polega na przygotowaniu plików muzycznych w formacie `.ogg` i zdefiniowaniu zasad ich odtwarzania w specjalnym pliku `songs.json`.
 
@@ -359,8 +371,9 @@ musicpacks/
           └── regular_fight.ogg
 ```
 #### 2. Plik `songs.json`
-To serce Twojego musicpacka. Jest to plik tekstowy zawierający listę "reguł" (rules), które mówią modyfikacji, kiedy odtwarzać dany utwór. Każda reguła składa się z trzech części:
+To serce Twojego musicpacka. Jest to plik tekstowy zawierający listę "reguł" (rules), które mówią modyfikacji, kiedy odtwarzać dany utwór. Każda reguła składa się z czterech części:
 - `file`: Ścieżka do pliku muzycznego.
+- `title` (Opcjonalnie): Nazwa wyświetlana utworu w powiadomieniu.
 - `priority`: Liczba określająca, jak ważny jest dany utwór.
 - `conditions`: Zestaw warunków, które muszą zostać spełnione, aby utwór mógł być odtworzony.
 
@@ -369,6 +382,7 @@ Oto przykład pliku `songs.json` z dwiema regułami:
 [
   {
     "file": "ambient/day_forest.ogg",
+    "title": "Duch Lasu",
     "priority": 10,
     "conditions": {
       "dimension": "overworld",

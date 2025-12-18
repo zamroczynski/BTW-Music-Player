@@ -43,6 +43,7 @@ public class ModConfig {
     public int caveYLevel = DEFAULT_CAVE_Y;
 
     public boolean enableDebugLogging = true;
+    public boolean showNotifications = true;
 
     public Map<String, Boolean> conditionToggles = new HashMap<>();
 
@@ -84,6 +85,9 @@ public class ModConfig {
                 this.contextChangeDelaySeconds = parseInt(props.getProperty("context_change_delay_seconds"), DEFAULT_CONTEXT_DELAY);
                 this.fadeDurationMs = parseInt(props.getProperty("fade_duration_ms"), DEFAULT_FADE_DURATION);
                 this.caveYLevel = parseInt(props.getProperty("cave_y_level"), DEFAULT_CAVE_Y);
+                this.showNotifications = props.containsKey("show_notifications")
+                        ? Boolean.parseBoolean(props.getProperty("show_notifications"))
+                        : true;
 
                 MusicLogger.always("Loading Condition Toggles:");
                 for (String cond : ALL_CONDITIONS) {
@@ -98,6 +102,7 @@ public class ModConfig {
                 MusicLogger.always(" -> Mode: " + this.loadingMode);
                 MusicLogger.always(" -> Fade Duration: " + this.fadeDurationMs + "ms");
                 MusicLogger.always(" -> Cave Y Level: " + this.caveYLevel);
+                MusicLogger.always(" -> Show Notifications: " + this.showNotifications + (props.containsKey("show_notifications") ? "" : " (DEFAULT)"));
 
             } catch (IOException e) {
                 MusicLogger.error("Error reading configuration file, using defaults. Error: " + e.getMessage());
@@ -117,6 +122,7 @@ public class ModConfig {
         props.setProperty("context_change_delay_seconds", String.valueOf(this.contextChangeDelaySeconds));
         props.setProperty("fade_duration_ms", String.valueOf(this.fadeDurationMs));
         props.setProperty("cave_y_level", String.valueOf(this.caveYLevel));
+        props.setProperty("show_notifications", String.valueOf(this.showNotifications));
 
         for (Map.Entry<String, Boolean> entry : conditionToggles.entrySet()) {
             props.setProperty("condition_" + entry.getKey(), String.valueOf(entry.getValue()));

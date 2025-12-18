@@ -111,6 +111,10 @@ public class PlaybackStateMachine {
                 sndSystem.play("BgMusic");
 
                 MusicLogger.log("[Playback] Started playing: " + rule.file);
+                MusicNotificationManager nm = btwmusicplayerAddon.getMusicContext().getNotificationManager();
+                if (nm != null) {
+                    nm.triggerNotification(rule);
+                }
             } else {
                 MusicLogger.error("File does not exist: " + songFile.getAbsolutePath());
                 this.currentSongPath = null;

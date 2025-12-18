@@ -11,12 +11,14 @@ public class MusicContext {
     private PlaylistManager playlistManager;
     private ConditionEvaluator conditionEvaluator;
     private OverlayManager overlayManager;
+    private MusicNotificationManager notificationManager;
 
-    public void registerComponents(MusicCombatTracker combatTracker, PlaylistManager playlistManager, ConditionEvaluator conditionEvaluator, OverlayManager overlayManager) {
+    public void registerComponents(MusicCombatTracker combatTracker, PlaylistManager playlistManager, ConditionEvaluator conditionEvaluator, OverlayManager overlayManager, MusicNotificationManager notificationManager) {
         this.combatTracker = combatTracker;
         this.playlistManager = playlistManager;
         this.conditionEvaluator = conditionEvaluator;
         this.overlayManager = overlayManager;
+        this.notificationManager = notificationManager;
         MusicLogger.log("[MusicContext] Components registered for access.");
     }
 
@@ -30,6 +32,10 @@ public class MusicContext {
 
     public ConditionEvaluator getConditionEvaluator() {
         return conditionEvaluator;
+    }
+
+    public MusicNotificationManager getNotificationManager() {
+        return notificationManager;
     }
 
     public void signalAttack() {
@@ -57,7 +63,7 @@ public class MusicContext {
     }
 
     public void registerComponents(MusicCombatTracker combatTracker, PlaylistManager playlistManager, ConditionEvaluator conditionEvaluator) {
-        this.registerComponents(combatTracker, playlistManager, conditionEvaluator, null);
+        this.registerComponents(combatTracker, playlistManager, conditionEvaluator, null, null);
     }
 
     public OverlayManager getOverlayManager() {

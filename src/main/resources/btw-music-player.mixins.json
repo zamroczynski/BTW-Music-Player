@@ -13,6 +13,7 @@
     "EntityWitherMixin",
     "EntityDragonMixin",
     "GuiOptionsMixin",
+    "GuiIngameMixin",
     "MinecraftMixin"
   ],
   "injectors": {

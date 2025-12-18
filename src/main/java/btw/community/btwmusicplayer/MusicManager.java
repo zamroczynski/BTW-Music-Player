@@ -224,4 +224,8 @@ public class MusicManager {
     public static List<SongRule> getSongRules() {
         return allSongRules;
     }
+
+    public interface MusicSoundManager {
+        MusicNotificationRenderer getNotificationRenderer();
+    }
 }
