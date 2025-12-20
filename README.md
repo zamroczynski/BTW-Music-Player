@@ -9,7 +9,7 @@ Players can create and install their own "Music Packs" containing music files an
 ### Features
 
 - Full Music Customization: Replace the entire game's soundtrack with your own `.ogg` files.
-- Dynamic Playlists: Create playlists for various situations, complete with randomization and looping.
+- Smart Playlist Logic: Tracks are shuffled globally at launch (like a deck of cards). The mod ensures every song for a specific context plays at least once before looping. The playback state is remembered even if you leave and return to an area, preventing repetitive music and ensuring you hear your entire library.
 - Smooth Transitions: Music gently fades in and out when the context changes, eliminating abrupt cuts.
 - Intelligent Combat System: Combat music is triggered not only when the player is attacked but also when they initiate a fight. The system sustains the combat theme as long as a threat is nearby.
 - Context-Aware Playback: Define music playback rules based on a wide range of conditions:
@@ -228,7 +228,7 @@ Gracze mogą tworzyć i instalować własne "musicpacki" zawierające muzykę or
 
 ### Funkcjonalności
 - Pełna Personalizacja Muzyki: Zastąp całą ścieżkę dźwiękową gry własnymi plikami `.ogg`.
-- Dynamiczne Playlisty: Twórz playlisty dla różnych sytuacji, z losową kolejnością odtwarzania i zapętlaniem.
+- Inteligentna Logika Playlist: Utwory są tasowane globalnie przy uruchomieniu gry (jak talia kart). Mod gwarantuje, że każda piosenka dla danego kontekstu zostanie odtworzona, zanim lista się zapętli. Historia odtworzeń jest zapamiętywana nawet jeśli w międzyczasie zmienisz biom, co zapobiega ciągłemu powtarzaniu się tych samych utworów.
 - Płynne Przejścia: Muzyka łagodnie cichnie i pojawia się na nowo (Fade In/Fade Out) przy zmianie kontekstu, eliminując nagłe cięcia.
 - Inteligentny System Walki: Muzyka walki jest aktywowana nie tylko, gdy gracz zostanie zaatakowany, ale również, gdy sam zainicjuje walkę. System podtrzymuje muzykę tak długo, jak długo w pobliżu znajduje się zagrożenie.
 - Kontekstowe Odtwarzanie: Definiuj zasady odtwarzania muzyki w oparciu o szeroki wachlarz warunków:
