@@ -40,23 +40,34 @@ public class ConditionEvaluator {
         ModConfig config = ModConfig.getInstance();
         EntityClientPlayerMP player = mc.thePlayer;
         boolean hasWorld = (player != null && player.worldObj != null);
-        long worldTime = hasWorld ? mc.theWorld.getTotalWorldTime() : 0;
+        boolean isActualMenu = (player == null || player.worldObj == null);
+
 
         // --- 1. MENU CHECK ---
-        if (conditions.is_menu != null) {
+        if (isActualMenu) {
             if (!config.isConditionEnabled(ModConfig.COND_MENU)) {
-                recordFailure(failureStats, "Global Toggle OFF: Menu");
+                recordFailure(failureStats, "[MenuContext] Global Toggle OFF: Menu");
                 return false;
             }
 
-            boolean isMenuContext = !hasWorld;
-
-            if (conditions.is_menu != isMenuContext) {
-                String screenName = (mc.currentScreen != null) ? mc.currentScreen.getClass().getSimpleName() : "null";
-                recordFailure(failureStats, "Menu mismatch (Req: " + conditions.is_menu + ", Actual: " + isMenuContext + ", Screen: " + screenName + ")");
-                return false;
+            if (Boolean.TRUE.equals(conditions.is_menu)) {
+                MusicLogger.trace("MATCH: Menu context active and rule has is_menu=true");
+                return true;
             }
+
+            recordFailure(failureStats, "[MenuContext] Rule does not explicitly allow menu (is_menu != true)");
+            return false;
         }
+
+        boolean ruleIsForMenu = Boolean.TRUE.equals(conditions.is_menu);
+        boolean ruleHasGameConditions = hasAnyGameCondition(conditions);
+
+        if (ruleIsForMenu && !ruleHasGameConditions) {
+            recordFailure(failureStats, "[GameContext] Rule is STRICTLY for Menu (is_menu=true and no game conditions)");
+            return false;
+        }
+
+        long worldTime = hasWorld ? mc.theWorld.getTotalWorldTime() : 0;
 
         // --- 2. VICTORY CHECK ---
         if (conditions.victory_after_boss != null) {
@@ -281,5 +292,17 @@ public class ConditionEvaluator {
         if (stats != null) {
             stats.merge(reason, 1, Integer::sum);
         }
+    }
+
+    private boolean hasAnyGameCondition(SongConditions c) {
+        return c.dimension != null
+                || c.biome != null
+                || c.time_of_day != null
+                || c.is_in_combat != null
+                || c.weather != null
+                || c.is_in_cave != null
+                || c.boss_type != null
+                || c.victory_after_boss != null
+                || c.is_low_health != null;
     }
 }
