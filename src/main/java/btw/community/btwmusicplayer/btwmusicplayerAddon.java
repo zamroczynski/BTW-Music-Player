@@ -1,7 +1,7 @@
 package btw.community.btwmusicplayer;
 
-import btw.AddonHandler;
-import btw.BTWAddon;
+import api.AddonHandler;
+import api.BTWAddon;
 
 public class btwmusicplayerAddon extends BTWAddon {
     private static btwmusicplayerAddon instance;
@@ -16,9 +16,21 @@ public class btwmusicplayerAddon extends BTWAddon {
     public void initialize() {
         AddonHandler.logMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
 
-        MusicManager.load();
+        try {
+            MusicLogger.always("Initializing Config and Music Manager...");
+            MusicManager.load();
+        } catch (Exception e) {
+            AddonHandler.logMessage("[CRITICAL ERROR] Failed to load MusicManager: " + e.getMessage());
+            e.printStackTrace();
+        }
 
-        this.registerAddonCommand(new CommandMusicDebug());
+        try {
+            this.registerAddonCommand(new CommandMusicDebug());
+            MusicLogger.always("Commands registered successfully.");
+        } catch (Exception e) {
+            AddonHandler.logMessage("[CRITICAL ERROR] Failed to register commands: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         MusicLogger.always("BTW Music Player Addon initialized successfully.");
     }

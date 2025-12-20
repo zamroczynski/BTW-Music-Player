@@ -1,20 +1,20 @@
 package btw.community.btwmusicplayer;
 
-import btw.AddonHandler;
+import api.AddonHandler;
 
 public class MusicLogger {
 
     private static final String LOG_PREFIX = "[BTWMusicPlayer] ";
 
     public static void log(String message) {
-        if (!ModConfig.getInstance().enableDebugLogging) {
+        if (ModConfig.getInstance() != null && !ModConfig.getInstance().enableDebugLogging) {
             return;
         }
         AddonHandler.logMessage(LOG_PREFIX + message);
     }
 
     public static void trace(String message) {
-        if (!ModConfig.getInstance().enableDebugLogging) {
+        if (ModConfig.getInstance() != null && !ModConfig.getInstance().enableDebugLogging) {
             return;
         }
         AddonHandler.logMessage(LOG_PREFIX + "[TRACE] " + message);
