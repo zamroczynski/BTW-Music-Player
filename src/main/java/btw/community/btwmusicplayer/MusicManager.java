@@ -103,6 +103,18 @@ public class MusicManager {
             e.printStackTrace();
         }
 
+        if (!allSongRules.isEmpty()) {
+            Collections.shuffle(allSongRules);
+            MusicLogger.always("--- Global Playlist Shuffled (Seed generated). Count: " + allSongRules.size() + " ---");
+
+            if (ModConfig.getInstance().enableDebugLogging) {
+                MusicLogger.trace("Global Order Preview (First 5):");
+                for (int i = 0; i < Math.min(5, allSongRules.size()); i++) {
+                    MusicLogger.trace(" [" + i + "] " + allSongRules.get(i).file + " (Prio: " + allSongRules.get(i).priority + ")");
+                }
+            }
+        }
+
         MusicLogger.always("--- Loading finished. Total rules loaded: " + allSongRules.size() + " ---");
         isLoaded = true;
     }

@@ -42,7 +42,7 @@ public class ModConfig {
     public int fadeDurationMs = DEFAULT_FADE_DURATION;
     public int caveYLevel = DEFAULT_CAVE_Y;
 
-    public boolean enableDebugLogging = true;
+    public boolean enableDebugLogging = false;
     public boolean showNotifications = true;
 
     public Map<String, Boolean> conditionToggles = new HashMap<>();

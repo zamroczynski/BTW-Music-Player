@@ -51,7 +51,7 @@ public class ConditionEvaluator {
             }
 
             if (Boolean.TRUE.equals(conditions.is_menu)) {
-                MusicLogger.trace("MATCH: Menu context active and rule has is_menu=true");
+//                MusicLogger.trace("MATCH: Menu context active and rule has is_menu=true");
                 return true;
             }
 
